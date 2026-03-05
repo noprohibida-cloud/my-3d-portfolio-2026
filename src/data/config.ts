@@ -1,5 +1,5 @@
 const config = {
-  title: "M. Faiq Khokhar | Full-Stack Developer",
+  title: "HUGO TRAVER - PORTFOLIO",
   description: {
     long: "Explore the portfolio of Faiq K., a full-stack developer and creative technologist specializing in interactive web experiences, 3D animations, and innovative projects. Discover my latest work, including Infin Global.io, BlockMed Pro, T-OTP based Authentication, AI Recommendation System, and more. Let's build something amazing together!",
     short:
@@ -67,8 +67,8 @@ const config = {
     "Vim",
     "Vercel",
   ],
-  author: "Faiq K.",
-  email: "faiq.khokhar06@gmail.com",
+  author: "hugo traver",
+  email: "hugo.trvr@gmail.com",
   site: "https://faiq-khokhar-dev.vercel.app",
 
   // for github followers button

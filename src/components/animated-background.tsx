@@ -425,19 +425,17 @@ const AnimatedBackground = () => {
     updateKeyboardTransform();
   }, [splineApp, isLoading, activeSection]);
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Spline
-        className="w-full h-full fixed"
-        ref={splineContainer}
-        onLoad={(app: Application) => {
-          setSplineApp(app);
-          bypassLoading();
-        }}
-        scene="/assets/skills-keyboard.spline"
-      />
-    </Suspense>
-  );
+return (
+  <>
+    <div className="fixed left-0 top-0 w-[20vw] h-screen -z-10 bg-zinc-900/10 border-r border-zinc-700/20">
+      {/* Orbites gauche */}
+    </div>
+
+    <div className="fixed right-0 top-0 w-[20vw] h-screen -z-10 bg-zinc-900/10 border-l border-zinc-700/20">
+      {/* Orbites droite */}
+    </div>
+  </>
+);
 };
 
 export default AnimatedBackground;

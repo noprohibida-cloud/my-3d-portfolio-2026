@@ -53,13 +53,6 @@ const Header = ({ loader }: HeaderProps) => {
           </Button>
         </Link>
 
-        <FunnyThemeToggle className="w-6 h-6 mr-4 flex" />
-        {config.githubUsername && (
-          <GitHubFollowersButton
-            username={config.githubUsername}
-            className="mr-4"
-          />
-        )}
         <Button
           variant={"ghost"}
           onClick={() => setIsActive(!isActive)}

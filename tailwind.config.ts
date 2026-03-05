@@ -23,8 +23,8 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "sans-serif"],
-        display: ["var(--font-display)", "sans-serif"],
+        sans: ["Hibana", "sans-serif"],
+        display: ["Hibana", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -87,7 +87,7 @@ const config = {
 } satisfies Config;
 
 export default config;
-// This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
+
 function addVariablesForColors({ addBase, theme }: any) {
   let allColors = flattenColorPalette(theme("colors"));
   let newVars = Object.fromEntries(
