@@ -1,3 +1,4 @@
+"use client";
 import { cn } from "@/lib/utils";
 import React from "react";
 import {
@@ -12,8 +13,17 @@ import { config } from "@/data/config";
 import SectionWrapper from "../ui/section-wrapper";
 import ScrambleText from "../scramble-text";
 
-const HeroSection = () => {
-  const { isLoading } = usePreloader();
+var ROLES = [
+  "technical artist",
+  "designer interactif",
+  "développeur créatif",
+  "directeur artistique",
+  "artiste procédural",
+];
+
+function HeroSection() {
+  var preloader = usePreloader();
+  var isLoading = preloader.isLoading;
 
   return (
     <SectionWrapper id="hero" className={cn("relative w-full h-[100dvh]")}>
@@ -33,7 +43,7 @@ const HeroSection = () => {
                   <p
                     className={cn(
                       "md:self-start mt-4 font-thin text-md text-slate-500 dark:text-zinc-400",
-                      "cursor-default font-display sm:text-xl md:text-xl whitespace-nowrap bg-clip-text "
+                      "cursor-default font-display sm:text-xl md:text-xl whitespace-nowrap bg-clip-text"
                     )}
                   >
                     Hi, I am
@@ -48,7 +58,7 @@ const HeroSection = () => {
                         className={cn(
                           "-ml-[4px] leading-none font-thin text-transparent text-slate-800 text-left mt-1",
                           "font-thin text-7xl md:text-7xl lg:text-8xl xl:text-9xl",
-                          "cursor-default text-edge-outline font-display "
+                          "cursor-default text-edge-outline font-display"
                         )}
                       >
                         {config.author.split(" ")[0]}
@@ -66,25 +76,24 @@ const HeroSection = () => {
                   </Tooltip>
                 </BlurIn>
                 <BlurIn delay={1.2}>
-                  <p
+                  <h2
                     className={cn(
-                      "md:self-start mt-2 font-thin text-md text-slate-500 dark:text-zinc-400",
-                      "cursor-default font-display sm:text-xl md:text-xl whitespace-nowrap bg-clip-text "
+                      "md:self-start mt-2",
+                      "cursor-default font-display",
+                      "text-2xl sm:text-3xl md:text-4xl lg:text-5xl",
+                      "text-slate-600 dark:text-zinc-300 font-thin tracking-tight"
                     )}
                   >
                     <ScrambleText
-                      texts={[
-                        "designer interactif",
-                        "technical artist",
-                        "développeur créatif",
-                        "directeur artistique",
-                      ]}
-                      scrambleDuration={1500}
-                      revealDuration={800}
-                      pauseDuration={2500}
-                      className=""
+                      texts={ROLES}
+                      interval={3400}
+                      morphOutDuration={500}
+                      morphInDuration={700}
+                      staggerDelay={35}
+                      letterSpacing="0.06em"
+                      floatIntensity={1}
                     />
-                  </p>
+                  </h2>
                 </BlurIn>
               </div>
             </div>
@@ -97,6 +106,6 @@ const HeroSection = () => {
       </div>
     </SectionWrapper>
   );
-};
+}
 
 export default HeroSection;
