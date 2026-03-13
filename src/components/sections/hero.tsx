@@ -1,4 +1,3 @@
-"use client";
 import { cn } from "@/lib/utils";
 import React from "react";
 import {
@@ -13,17 +12,8 @@ import { config } from "@/data/config";
 import SectionWrapper from "../ui/section-wrapper";
 import ScrambleText from "../scramble-text";
 
-var ROLES = [
-  "technical artist",
-  "designer interactif",
-  "développeur créatif",
-  "directeur artistique",
-  "artiste procédural",
-];
-
-function HeroSection() {
-  var preloader = usePreloader();
-  var isLoading = preloader.isLoading;
+const HeroSection = () => {
+  const { isLoading } = usePreloader();
 
   return (
     <SectionWrapper id="hero" className={cn("relative w-full h-[100dvh]")}>
@@ -75,23 +65,28 @@ function HeroSection() {
                     </TooltipContent>
                   </Tooltip>
                 </BlurIn>
+
                 <BlurIn delay={1.2}>
                   <h2
                     className={cn(
-                      "md:self-start mt-2",
-                      "cursor-default font-display",
-                      "text-2xl sm:text-3xl md:text-4xl lg:text-5xl",
-                      "text-slate-600 dark:text-zinc-300 font-thin tracking-tight"
+                      "md:self-start mt-3 font-thin text-slate-500 dark:text-zinc-400",
+                      "cursor-default font-display whitespace-nowrap bg-clip-text",
+                      "text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
                     )}
                   >
                     <ScrambleText
-                      texts={ROLES}
-                      interval={3400}
-                      morphOutDuration={500}
-                      morphInDuration={700}
-                      staggerDelay={35}
-                      letterSpacing="0.06em"
-                      floatIntensity={1}
+                      texts={[
+                        "designer interactif",
+                        "technical artist",
+                        "développeur créatif",
+                        "directeur artistique",
+                      ]}
+                      interval={5200}
+                      morphOutDuration={560}
+                      morphInDuration={800}
+                      staggerDelay={42}
+                      floatIntensity={0.55}
+                      className=""
                     />
                   </h2>
                 </BlurIn>
@@ -106,6 +101,6 @@ function HeroSection() {
       </div>
     </SectionWrapper>
   );
-}
+};
 
 export default HeroSection;

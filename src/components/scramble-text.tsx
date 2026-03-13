@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-interface FluxTextProps {
+interface ScrambleTextProps {
   texts: string[];
   interval?: number;
   morphOutDuration?: number;
@@ -15,242 +15,271 @@ interface FluxTextProps {
   pauseDuration?: number;
 }
 
-interface CharMorph {
-  char: string;
-  opacity: number;
-  blur: number;
-  scaleY: number;
-  scaleX: number;
-  y: number;
+// ── Float amplitude par lettre ─────────────────────────────────────────────────
+function fAmp(i: number, intensity: number): number {
+  return intensity * (1.1 + Math.abs(Math.sin(i * 1.0472 + 0.524)) * 1.4);
+}
+function fPeriod(i: number): number {
+  return 3600 + Math.abs(Math.sin(i * 0.618 * 2.1)) * 2000;
 }
 
-function easeInCubic(t: number): number {
-  return t * t * t;
-}
-
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3);
-}
-
-function easeOutBack(t: number): number {
-  var c = 1.4;
-  return 1 + c * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2);
-}
-
-function makeIdle(text: string): CharMorph[] {
-  var result: CharMorph[] = [];
-  for (var i = 0; i < text.length; i++) {
-    result.push({
-      char: text[i],
-      opacity: 1,
-      blur: 0,
-      scaleY: 1,
-      scaleX: 1,
-      y: 0,
-    });
+function buildKf(intensity: number): string {
+  var s = "";
+  for (var i = 0; i < 32; i++) {
+    var a = fAmp(i, intensity);
+    s += "@keyframes sft" + i + "{";
+    s += "0%{transform:translateY(0)}";
+    s += "22%{transform:translateY(" + (-a * 0.3).toFixed(3) + "px)}";
+    s += "50%{transform:translateY(" + (-a).toFixed(3) + "px)}";
+    s += "78%{transform:translateY(" + (-a * 0.25).toFixed(3) + "px)}";
+    s += "100%{transform:translateY(0)}";
+    s += "}";
   }
-  return result;
+  return s;
 }
 
-function ScrambleText(props: FluxTextProps) {
-  var texts = props.texts;
-  var hasTexts = Array.isArray(texts) && texts.length > 0;
-  var safeTexts = hasTexts ? texts : ["loading"];
+// ── Easings ────────────────────────────────────────────────────────────────────
+// Sortie : accelere doucement
+var EASE_OUT = "cubic-bezier(0.45, 0, 0.85, 0.35)";
+// Entrée : très douce, glisse avec un léger rebond organique
+var EASE_IN  = "cubic-bezier(0.22, 1.0, 0.36, 1.0)";
 
-  var interval = typeof props.interval === "number" ? props.interval : 3400;
-  var morphOutDuration = typeof props.morphOutDuration === "number" ? props.morphOutDuration : 500;
-  var morphInDuration = typeof props.morphInDuration === "number" ? props.morphInDuration : 700;
-  var staggerDelay = typeof props.staggerDelay === "number" ? props.staggerDelay : 35;
-  var letterSpacing = typeof props.letterSpacing === "string" ? props.letterSpacing : "0.06em";
-  var floatIntensity = typeof props.floatIntensity === "number" ? props.floatIntensity : 1;
-  var className = typeof props.className === "string" ? props.className : "";
+function ScrambleText(props: ScrambleTextProps) {
+  var safe      = Array.isArray(props.texts) && props.texts.length > 0 ? props.texts : ["loading"];
+  var interval  = typeof props.interval          === "number" ? props.interval          : 5200;
+  var outDur    = typeof props.morphOutDuration  === "number" ? props.morphOutDuration  : 440;
+  var inDur     = typeof props.morphInDuration   === "number" ? props.morphInDuration   : 780;
+  var staggerMs = typeof props.staggerDelay      === "number" ? props.staggerDelay      : 38;
+  var fi        = typeof props.floatIntensity    === "number" ? props.floatIntensity    : 0.8;
+  var ls        = typeof props.letterSpacing     === "string" ? props.letterSpacing     : "0.05em";
+  var cls       = typeof props.className         === "string" ? props.className         : "";
 
-  var initMorphs = React.useMemo(function () {
-    return makeIdle(safeTexts[0]);
-  }, []);
+  // Keyframes recalculées si fi change
+  var kfRef = useRef({ fi: -1, css: "" });
+  if (kfRef.current.fi !== fi) {
+    kfRef.current = { fi: fi, css: buildKf(fi) };
+  }
 
-  var charMorphsState = useState<CharMorph[]>(initMorphs);
-  var charMorphs = charMorphsState[0];
-  var setCharMorphs = charMorphsState[1];
+  var textState = useState<string>(function() { return safe[0]; });
+  var text      = textState[0];
+  var setText   = textState[1];
 
-  var frameRef = useRef(0);
-  var phaseStartRef = useRef(0);
-  var timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  var indexRef = useRef(0);
-  var textsRef = useRef(safeTexts);
-  textsRef.current = safeTexts;
+  var spans   = useRef<(HTMLSpanElement | null)[]>([]);
+  var safeRef = useRef(safe);
+  var idxRef  = useRef(0);
+  var busyRef = useRef(false);
+  var tids    = useRef<ReturnType<typeof setTimeout>[]>([]);
+  var pendIn  = useRef<{ on: boolean; txt: string }>({ on: false, txt: "" });
+  safeRef.current = safe;
 
-  var startTransition = useCallback(function () {
-    var currentIdx = indexRef.current;
-    var tx = textsRef.current;
+  var clearAll = function() {
+    tids.current.forEach(clearTimeout);
+    tids.current = [];
+  };
+  var later = function(fn: () => void, ms: number) {
+    var t = setTimeout(fn, ms);
+    tids.current.push(t);
+  };
+
+  // ── Float respiration ────────────────────────────────────────────────────────
+  var floatRef = useRef(function() {});
+  floatRef.current = function() {
+    var ss  = spans.current;
+    var cur = safeRef.current[idxRef.current] || "";
+    for (var i = 0; i < ss.length; i++) {
+      var s = ss[i];
+      if (!s || i >= cur.length || cur[i] === " ") continue;
+      var period = (fPeriod(i) / 1000).toFixed(2);
+      var delay  = (i * 0.16).toFixed(2);
+      s.style.transition = "none";
+      s.style.opacity    = "1";
+      s.style.filter     = "none";
+      s.style.transform  = "translateY(0)";
+      s.offsetHeight;
+      s.style.animation =
+        "sft" + (i % 32) + " " + period + "s " + delay + "s ease-in-out infinite";
+    }
+  };
+
+  // ── Animate IN ───────────────────────────────────────────────────────────────
+  var animInRef = useRef(function(_txt: string) {});
+  animInRef.current = function(txt: string) {
+    var ss   = spans.current;
+    var last = 0;
+    for (var i = 0; i < ss.length; i++) {
+      var s = ss[i];
+      if (!s || i >= txt.length || txt[i] === " ") continue;
+      var d = i * staggerMs;
+      if (d > last) last = d;
+      (function(sp: HTMLSpanElement, ms: number) {
+        later(function() {
+          sp.style.transition = [
+            "opacity "   + inDur + "ms " + EASE_IN,
+            "filter "    + inDur + "ms " + EASE_IN,
+            "transform " + inDur + "ms " + EASE_IN,
+          ].join(", ");
+          sp.style.opacity   = "1";
+          sp.style.filter    = "none";
+          sp.style.transform = "translateY(0) scaleY(1) scaleX(1)";
+        }, ms);
+      })(s, d);
+    }
+    later(function() {
+      busyRef.current = false;
+      floatRef.current();
+    }, last + inDur + 60);
+  };
+
+  // ── Layout : init spans avant paint ─────────────────────────────────────────
+  useLayoutEffect(function() {
+    if (!pendIn.current.on) return;
+    pendIn.current.on = false;
+    var txt = pendIn.current.txt;
+    var ss  = spans.current;
+
+    for (var i = 0; i < ss.length; i++) {
+      var s = ss[i];
+      if (!s) continue;
+      s.style.animation  = "none";
+      s.style.transition = "none";
+      s.offsetHeight;
+      if (i >= txt.length || txt[i] === " ") {
+        s.style.opacity = "0";
+        continue;
+      }
+      s.style.opacity   = "0";
+      s.style.filter    = "blur(12px)";
+      // Démarre depuis le bas, légèrement compressée
+      s.style.transform = "translateY(10px) scaleY(1.18) scaleX(0.94)";
+    }
+
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        animInRef.current(txt);
+      });
+    });
+  });
+
+  // ── Transition : out → swap → in ────────────────────────────────────────────
+  var transRef = useRef(function() {});
+  transRef.current = function() {
+    if (busyRef.current) return;
+    var tx = safeRef.current;
     if (!tx || tx.length < 2) return;
 
-    var nextIdx = (currentIdx + 1) % tx.length;
-    var currentText = tx[currentIdx];
+    busyRef.current = true;
+    clearAll();
+
+    var nextIdx  = (idxRef.current + 1) % tx.length;
     var nextText = tx[nextIdx];
-    var maxLen = Math.max(currentText.length, nextText.length);
+    var cur      = tx[idxRef.current] || "";
+    var ss       = spans.current;
 
-    phaseStartRef.current = Date.now();
-
-    function animateOut() {
-      var elapsed = Date.now() - phaseStartRef.current;
-      var padded = currentText.padEnd(maxLen, " ");
-      var morphs: CharMorph[] = [];
-
-      for (var i = 0; i < padded.length; i++) {
-        var char = padded[i];
-        if (char === " ") {
-          morphs.push({ char: " ", opacity: 0, blur: 0, scaleY: 1, scaleX: 1, y: 0 });
-          continue;
-        }
-        var charStart = i * staggerDelay;
-        var charElapsed = Math.max(0, elapsed - charStart);
-        var charDuration = Math.max(100, morphOutDuration - i * (staggerDelay * 0.3));
-        var t = Math.min(1, charElapsed / charDuration);
-        var eased = easeInCubic(t);
-        morphs.push({
-          char: char,
-          opacity: 1 - eased,
-          blur: eased * 8,
-          scaleY: 1 + eased * 0.3,
-          scaleX: 1 - eased * 0.15,
-          y: eased * -6,
-        });
-      }
-
-      setCharMorphs(morphs);
-
-      var totalOut = morphOutDuration + maxLen * staggerDelay * 0.3;
-      if (elapsed < totalOut) {
-        frameRef.current = requestAnimationFrame(animateOut);
-      } else {
-        indexRef.current = nextIdx;
-        phaseStartRef.current = Date.now();
-        frameRef.current = requestAnimationFrame(animateIn);
-      }
+    // Stoppe le float proprement
+    for (var i = 0; i < ss.length; i++) {
+      var s = ss[i];
+      if (!s) continue;
+      s.style.animation  = "none";
+      s.style.transition = "none";
+      s.style.transform  = "translateY(0) scaleY(1) scaleX(1)";
+      s.style.opacity    = "1";
+      s.style.filter     = "none";
     }
 
-    function animateIn() {
-      var elapsed = Date.now() - phaseStartRef.current;
-      var padded = nextText.padEnd(maxLen, " ");
-      var morphs: CharMorph[] = [];
+    // ── EXIT : stagger réduit + délai de base pour que
+    //    la lettre 0 ne parte pas seule en avance ──────────────────────────────
+    var EXIT_STAGGER = 18;   // ms entre chaque lettre (plus serré = plus groupé)
+    var EXIT_BASE    = 30;   // ms de délai minimal avant que quoi que ce soit bouge
+    var last         = 0;
 
-      for (var i = 0; i < padded.length; i++) {
-        var char = padded[i];
-        if (char === " ") {
-          morphs.push({ char: " ", opacity: 0, blur: 0, scaleY: 1, scaleX: 1, y: 0 });
-          continue;
-        }
-        var charStart = i * staggerDelay;
-        var charElapsed = Math.max(0, elapsed - charStart);
-        var charDuration = Math.max(100, morphInDuration - i * (staggerDelay * 0.2));
-        var t = Math.min(1, charElapsed / charDuration);
-        var easedOpacity = easeOutCubic(t);
-        var easedForm = easeOutBack(Math.min(1, t));
-        morphs.push({
-          char: char,
-          opacity: easedOpacity,
-          blur: (1 - easedOpacity) * 10,
-          scaleY: 1 + (1 - easedForm) * 0.4,
-          scaleX: 1 - (1 - easedForm) * 0.1,
-          y: (1 - easedForm) * 8,
-        });
-      }
-
-      setCharMorphs(morphs);
-
-      var totalIn = morphInDuration + maxLen * staggerDelay;
-      if (elapsed < totalIn) {
-        frameRef.current = requestAnimationFrame(animateIn);
-      } else {
-        setCharMorphs(makeIdle(nextText));
-      }
+    for (var j = 0; j < ss.length; j++) {
+      var sp = ss[j];
+      if (!sp || j >= cur.length || cur[j] === " ") continue;
+      var d = EXIT_BASE + j * EXIT_STAGGER;
+      if (d > last) last = d;
+      (function(s2: HTMLSpanElement, ms: number) {
+        later(function() {
+          s2.style.transition = [
+            "opacity "   + outDur + "ms " + EASE_OUT,
+            "filter "    + outDur + "ms " + EASE_OUT,
+            "transform " + outDur + "ms " + EASE_OUT,
+          ].join(", ");
+          s2.style.opacity   = "0";
+          s2.style.filter    = "blur(7px)";
+          s2.style.transform = "translateY(-6px) scaleY(1.1)";
+        }, ms);
+      })(sp, d);
     }
 
-    frameRef.current = requestAnimationFrame(animateOut);
-  }, [morphOutDuration, morphInDuration, staggerDelay]);
+    later(function() {
+      idxRef.current     = nextIdx;
+      pendIn.current.on  = true;
+      pendIn.current.txt = nextText;
+      setText(nextText);
+    }, last + outDur + 20);
+  };
 
-  useEffect(function () {
-    var tx = textsRef.current;
+  // ── Timer ────────────────────────────────────────────────────────────────────
+  useEffect(function() {
+    var tx = safeRef.current;
     if (!tx || tx.length < 2) return;
-
-    timerRef.current = setInterval(function () {
-      startTransition();
-    }, interval);
-
-    return function () {
-      if (timerRef.current) clearInterval(timerRef.current);
-      cancelAnimationFrame(frameRef.current);
+    requestAnimationFrame(function() { floatRef.current(); });
+    var t = setInterval(function() { transRef.current(); }, interval);
+    return function() {
+      clearInterval(t);
+      clearAll();
     };
-  }, [interval, startTransition]);
+  }, [interval]);
 
-  // Sync if texts prop changes after mount
-  useEffect(function () {
-    if (!hasTexts) return;
-    indexRef.current = 0;
-    setCharMorphs(makeIdle(safeTexts[0]));
-  }, [hasTexts]);
+  // ── Render ───────────────────────────────────────────────────────────────────
+  spans.current = new Array(text.length).fill(null);
 
-  var fi = floatIntensity;
-  var kf = "@keyframes ff0{0%,100%{transform:translate(0,0)}25%{transform:translate("+(0.3*fi)+"px,"+(-0.7*fi)+"px)}50%{transform:translate("+(-0.2*fi)+"px,"+(0.4*fi)+"px)}75%{transform:translate("+(0.4*fi)+"px,"+(-0.2*fi)+"px)}}"
-    + "@keyframes ff1{0%,100%{transform:translate(0,0)}30%{transform:translate("+(-0.4*fi)+"px,"+(0.5*fi)+"px)}60%{transform:translate("+(0.3*fi)+"px,"+(-0.4*fi)+"px)}80%{transform:translate("+(-0.15*fi)+"px,"+(0.25*fi)+"px)}}"
-    + "@keyframes ff2{0%,100%{transform:translate(0,0)}20%{transform:translate("+(0.4*fi)+"px,"+(0.3*fi)+"px)}55%{transform:translate("+(-0.25*fi)+"px,"+(-0.6*fi)+"px)}85%{transform:translate("+(0.15*fi)+"px,"+(0.4*fi)+"px)}}"
-    + "@keyframes ff3{0%,100%{transform:translate(0,0)}35%{transform:translate("+(-0.35*fi)+"px,"+(-0.3*fi)+"px)}65%{transform:translate("+(0.3*fi)+"px,"+(0.5*fi)+"px)}90%{transform:translate("+(-0.2*fi)+"px,"+(-0.15*fi)+"px)}}"
-    + "@keyframes ff4{0%,100%{transform:translate(0,0)}40%{transform:translate("+(0.15*fi)+"px,"+(0.6*fi)+"px)}70%{transform:translate("+(-0.4*fi)+"px,"+(-0.25*fi)+"px)}85%{transform:translate("+(0.25*fi)+"px,"+(-0.4*fi)+"px)}}"
-    + "@keyframes ff5{0%,100%{transform:translate(0,0)}25%{transform:translate("+(-0.25*fi)+"px,"+(0.4*fi)+"px)}50%{transform:translate("+(0.35*fi)+"px,"+(-0.5*fi)+"px)}75%{transform:translate("+(-0.4*fi)+"px,"+(0.15*fi)+"px)}}";
-
-  var spans: React.ReactElement[] = [];
-  for (var i = 0; i < charMorphs.length; i++) {
-    var m = charMorphs[i];
-    if (m.char === " ") {
-      spans.push(
+  var letters: React.ReactElement[] = [];
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (ch === " ") {
+      letters.push(
         React.createElement("span", {
-          key: "s" + i,
-          style: { display: "inline-block", width: "0.25em" },
+          key: "sp" + i,
+          style: { display: "inline-block", width: "0.28em" },
         })
       );
       continue;
     }
-    var isIdle = m.blur === 0 && m.opacity === 1;
-    var anim = isIdle && fi > 0
-      ? "ff" + (i % 6) + " " + (3 + (i * 0.7) % 4) + "s " + (i * 0.12) + "s ease-in-out infinite"
-      : "none";
-
-    spans.push(
-      React.createElement("span", {
-        key: "c" + i,
-        style: {
-          display: "inline-block",
-          opacity: m.opacity,
-          filter: m.blur > 0.2 ? "blur(" + m.blur + "px)" : "none",
-          transform: isIdle ? "none" : "scaleY(" + m.scaleY + ") scaleX(" + m.scaleX + ") translateY(" + m.y + "px)",
-          transformOrigin: "center bottom",
-          animation: anim,
-          willChange: isIdle ? "auto" : "transform, opacity, filter",
-        },
-      }, m.char)
-    );
+    (function(idx: number) {
+      letters.push(
+        React.createElement("span", {
+          key: "l" + idx,
+          ref: function(el: HTMLSpanElement | null) {
+            spans.current[idx] = el;
+          },
+          style: {
+            display: "inline-block",
+            transformOrigin: "center bottom",
+            willChange: "transform, opacity, filter",
+          },
+        }, text[idx])
+      );
+    })(i);
   }
 
   return React.createElement(
     "span",
     {
-      className: className,
+      className: cls,
       style: {
         display: "inline-block",
         position: "relative",
         verticalAlign: "bottom",
         height: "1.3em",
         lineHeight: "1.3em",
-        letterSpacing: letterSpacing,
+        letterSpacing: ls,
       },
     },
-    React.createElement("style", { dangerouslySetInnerHTML: { __html: kf } }),
-    React.createElement(
-      "span",
-      { style: { display: "inline-block", whiteSpace: "nowrap", position: "relative" } },
-      spans
-    )
+    React.createElement("style", { dangerouslySetInnerHTML: { __html: kfRef.current.css } }),
+    React.createElement("span", {
+      style: { display: "inline-block", whiteSpace: "nowrap" },
+    }, letters)
   );
 }
 
