@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { SectionHeader } from "./section-header";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { PROJECTS, SimpleProject } from "@/data/projects";
-import PrototypesModal from "@/components/PrototypesModal";
 
 const tiltOptions = { max: 4, speed: 400, glare: true, "max-glare": 0.15, gyroscope: false };
 
-function ProjectCard(props: { project: SimpleProject; onModalOpen: () => void }) {
-  const { project, onModalOpen } = props;
+function ProjectCard(props: { project: SimpleProject; onClick: () => void }) {
+  const { project, onClick } = props;
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(function () {
@@ -25,6 +25,8 @@ function ProjectCard(props: { project: SimpleProject; onModalOpen: () => void })
   const imageSrc = project.imageSrc
     ? project.imageSrc
     : "/assets/projects-screenshots/" + project.imageKey + ".png";
+
+  const isClickable = project.internal || project.url;
 
   const card = React.createElement(
     "div",
@@ -57,7 +59,7 @@ function ProjectCard(props: { project: SimpleProject; onModalOpen: () => void })
     React.createElement(
       "div",
       { className: "relative z-10 p-6", style: { transform: "translateZ(2rem)" } },
-      project.hasModal
+      project.internal
         ? React.createElement(
             "div",
             {
@@ -75,14 +77,16 @@ function ProjectCard(props: { project: SimpleProject; onModalOpen: () => void })
     )
   );
 
-  if (project.hasModal) {
+  // Projet interne → router.push
+  if (project.internal) {
     return React.createElement(
       "button",
-      { onClick: onModalOpen, className: "group appearance-none bg-transparent border-0 p-0 cursor-pointer block" },
+      { onClick: onClick, className: "group appearance-none bg-transparent border-0 p-0 cursor-pointer block" },
       card
     );
   }
 
+  // Projet externe → <a>
   return React.createElement(
     "a",
     { href: project.url, target: "_blank", rel: "noreferrer", className: "group block" },
@@ -91,16 +95,16 @@ function ProjectCard(props: { project: SimpleProject; onModalOpen: () => void })
 }
 
 function ProjectsSection() {
-  const [modalOpen, setModalOpen] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const trackRef   = useRef<HTMLDivElement>(null);
+  const router     = useRouter();
 
   useLayoutEffect(function () {
     gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(function () {
       function setup() {
-        const section = sectionRef.current;
-        const track = trackRef.current;
+        const section  = sectionRef.current;
+        const track    = trackRef.current;
         if (!section || !track) return;
         const distance = track.scrollWidth - section.clientWidth;
         ScrollTrigger.getById("projects-h")?.kill();
@@ -132,29 +136,26 @@ function ProjectsSection() {
   }, []);
 
   return React.createElement(
-    React.Fragment,
-    null,
+    "section",
+    { id: "projects", className: "relative max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24" },
+    React.createElement(SectionHeader, { id: "projects", title: "Projects", desc: "Une sélection de mes créations." }),
     React.createElement(
-      "section",
-      { id: "projects", className: "relative max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24" },
-      React.createElement(SectionHeader, { id: "projects", title: "Projects", desc: "Une sélection de mes créations." }),
+      "div",
+      { ref: sectionRef, className: "mt-10 overflow-x-hidden w-screen max-w-none -mx-[calc(50vw-50%)]" },
       React.createElement(
         "div",
-        { ref: sectionRef, className: "mt-10 overflow-x-hidden w-screen max-w-none -mx-[calc(50vw-50%)]" },
-        React.createElement(
-          "div",
-          { ref: trackRef, className: "flex gap-6 overflow-visible pb-6 snap-x snap-mandatory w-max px-8" },
-          PROJECTS.map(function (project) {
-            return React.createElement(ProjectCard, {
-              key: project.name,
-              project: project,
-              onModalOpen: function () { setModalOpen(true); },
-            });
-          })
-        )
+        { ref: trackRef, className: "flex gap-6 overflow-visible pb-6 snap-x snap-mandatory w-max px-8" },
+        PROJECTS.map(function (project) {
+          return React.createElement(ProjectCard, {
+            key: project.name,
+            project: project,
+            onClick: function () {
+              if (project.internal) router.push(project.url);
+            },
+          });
+        })
       )
-    ),
-    React.createElement(PrototypesModal, { open: modalOpen, onClose: function () { setModalOpen(false); } })
+    )
   );
 }
 

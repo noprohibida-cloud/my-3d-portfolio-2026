@@ -1,30 +1,14 @@
-// thoda zada ts ho gya idhar
+// ─── Skills (used by animated-background keyboard — do not remove) ─────────────
+
 export enum SkillNames {
-  JS = "js",
-  TS = "ts",
-  HTML = "html",
-  CSS = "css",
-  REACT = "react",
-  VUE = "vue",
-  NEXTJS = "nextjs",
-  TAILWIND = "tailwind",
-  NODEJS = "nodejs",
-  EXPRESS = "express",
-  POSTGRES = "postgres",
-  MONGODB = "mongodb",
-  GIT = "git",
-  GITHUB = "github",
-  PRETTIER = "prettier",
-  NPM = "npm",
-  FIREBASE = "firebase",
-  WORDPRESS = "wordpress",
-  LINUX = "linux",
-  DOCKER = "docker",
-  NGINX = "nginx",
-  AWS = "aws",
-  VIM = "vim",
-  VERCEL = "vercel",
+  JS = "js", TS = "ts", HTML = "html", CSS = "css",
+  REACT = "react", VUE = "vue", NEXTJS = "nextjs", TAILWIND = "tailwind",
+  NODEJS = "nodejs", EXPRESS = "express", POSTGRES = "postgres", MONGODB = "mongodb",
+  GIT = "git", GITHUB = "github", PRETTIER = "prettier", NPM = "npm",
+  FIREBASE = "firebase", WORDPRESS = "wordpress", LINUX = "linux", DOCKER = "docker",
+  NGINX = "nginx", AWS = "aws", VIM = "vim", VERCEL = "vercel",
 }
+
 export type Skill = {
   id: number;
   name: string;
@@ -33,294 +17,104 @@ export type Skill = {
   color: string;
   icon: string;
 };
+
 export const SKILLS: Record<SkillNames, Skill> = {
-  [SkillNames.JS]: {
-    id: 1,
-    name: "js",
-    label: "JavaScript",
-    shortDescription: "sprinkling chaos and callbacks since '95 🌀🚀",
-    color: "#f0db4f",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
-  },
-  [SkillNames.TS]: {
-    id: 2,
-    name: "ts",
-    label: "TypeScript",
-    shortDescription:
-      "JavaScript’s overachiever with a helmet on 🪖🔒",
-    color: "#007acc",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
-  },
-  [SkillNames.HTML]: {
-    id: 3,
-    name: "html",
-    label: "HTML",
-    shortDescription: "the internet’s grandparent still handing out tags 📜🔥",
-    color: "#e34c26",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
-  },
-  [SkillNames.CSS]: {
-    id: 4,
-    name: "css",
-    label: "CSS",
-    shortDescription: "fashion week for divs, with unexpected plot twists 🧵✨",
-    color: "#563d7c",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg",
-  },
-  [SkillNames.REACT]: {
-    id: 5,
-    name: "react",
-    label: "React",
-    shortDescription: "hooks on hooks on hooks—state of constant suspense 🎣⚛️",
-    color: "#61dafb",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
-  },
-  [SkillNames.VUE]: {
-    id: 6,
-    name: "vue",
-    label: "Vue",
-    shortDescription:
-      "frontend zen garden with reactive bonsai vibes 🟢😌",
-    color: "#41b883",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg",
-  },
-  [SkillNames.NEXTJS]: {
-    id: 7,
-    name: "nextjs",
-    label: "Next.js",
-    shortDescription:
-      "SSR sorcery with a sprinkle of router drama 👑🪄",
-    color: "#fff",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
-  },
-  [SkillNames.TAILWIND]: {
-    id: 8,
-    name: "tailwind",
-    label: "Tailwind",
-    shortDescription: "utility drip so strong it bends time-to-ship ⏩🌪️",
-    color: "#38bdf8",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg",
-  },
-  [SkillNames.NODEJS]: {
-    id: 9,
-    name: "nodejs",
-    label: "Node.js",
-    shortDescription: "JavaScript’s backend cosplay, event loop edition 🔄🟢",
-    color: "#6cc24a",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
-  },
-  [SkillNames.EXPRESS]: {
-    id: 10,
-    name: "express",
-    label: "Express",
-    shortDescription: "middlewares on a diet—minimal, spicy, fast 🛤️💨",
-    color: "#fff",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg",
-  },
-  [SkillNames.POSTGRES]: {
-    id: 11,
-    name: "postgres",
-    label: "PostgreSQL",
-    shortDescription: "relational powerhouse with elephant memory 🐘💾",
-    color: "#336791",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
-  },
-  [SkillNames.MONGODB]: {
-    id: 12,
-    name: "mongodb",
-    label: "MongoDB",
-    shortDescription: "document hoarder with flexible vibes 🗂️🍃",
-    color: "#336791",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
-  },
-  [SkillNames.GIT]: {
-    id: 13,
-    name: "git",
-    label: "Git",
-    shortDescription: "time travel for code, with merge plot twists ⏳🌀",
-    color: "#f1502f",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
-  },
-  [SkillNames.GITHUB]: {
-    id: 14,
-    name: "github",
-    label: "GitHub",
-    shortDescription: "PR central where branches learn to play nice 🐙🤝",
-    color: "#000000",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
-  },
-  [SkillNames.PRETTIER]: {
-    id: 15,
-    name: "prettier",
-    label: "Prettier",
-    shortDescription: "auto-format fairy that hushes lint fights 🧹✨",
-    color: "#f7b93a",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prettier/prettier-original.svg",
-  },
-  [SkillNames.NPM]: {
-    id: 16,
-    name: "npm",
-    label: "NPM",
-    shortDescription: "the OG package plug—mind the dependency maze 📦🧭",
-    color: "#fff",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/npm/npm-original-wordmark.svg",
-  },
-  [SkillNames.FIREBASE]: {
-    id: 17,
-    name: "firebase",
-    label: "Firebase",
-    shortDescription:
-      "rapid backend-in-a-box; watch for the vendor vines 🔥🎒",
-    color: "#ffca28",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
-  },
-  [SkillNames.WORDPRESS]: {
-    id: 18,
-    name: "wordpress",
-    label: "WordPress",
-    shortDescription: "CMS elder with a million plugins and opinions 🧓🔌",
-    color: "#007acc",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/wordpress/wordpress-plain.svg",
-  },
-  [SkillNames.LINUX]: {
-    id: 19,
-    name: "linux",
-    label: "Linux",
-    shortDescription: "kernel kingdom for terminal goblins 🧙‍♂️🐧",
-    color: "#fff",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
-  },
-  [SkillNames.DOCKER]: {
-    id: 20,
-    name: "docker",
-    label: "Docker",
-    shortDescription: "container Tetris that actually stacks right 🐳📦",
-    color: "#2496ed",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
-  },
-  [SkillNames.NGINX]: {
-    id: 21,
-    name: "nginx",
-    label: "NginX",
-    shortDescription: "reverse proxy sprinter with cache-for-days 🏎️🌀",
-    color: "#008000",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nginx/nginx-original.svg",
-  },
-  [SkillNames.AWS]: {
-    id: 22,
-    name: "aws",
-    label: "AWS",
-    shortDescription:
-      "cloud buffet—powerful, but don’t lose your plate 🌐⚡",
-    color: "#ff9900",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/aws/aws-original.svg",
-  },
-  [SkillNames.VIM]: {
-    id: 23,
-    name: "vim",
-    label: "Vim",
-    shortDescription: "modal wizardry; escape key sold separately 🧙‍♂️🚪",
-    color: "#e34c26",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vim/vim-original.svg",
-  },
-  [SkillNames.VERCEL]: {
-    id: 24,
-    name: "vercel",
-    label: "Vercel",
-    shortDescription:
-      "deploy, hydrate, touch grass—the triangle’s got you 🚀🌿",
-    color: "#6cc24a",
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg",
-  },
+  [SkillNames.JS]: { id: 1, name: "js", label: "JavaScript", shortDescription: "sprinkling chaos and callbacks since '95 🌀🚀", color: "#f0db4f", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" },
+  [SkillNames.TS]: { id: 2, name: "ts", label: "TypeScript", shortDescription: "JavaScript's overachiever with a helmet on 🪖🔒", color: "#007acc", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" },
+  [SkillNames.HTML]: { id: 3, name: "html", label: "HTML", shortDescription: "the internet's grandparent still handing out tags 📜🔥", color: "#e34c26", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" },
+  [SkillNames.CSS]: { id: 4, name: "css", label: "CSS", shortDescription: "fashion week for divs, with unexpected plot twists 🧵✨", color: "#563d7c", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" },
+  [SkillNames.REACT]: { id: 5, name: "react", label: "React", shortDescription: "hooks on hooks on hooks—state of constant suspense 🎣⚛️", color: "#61dafb", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" },
+  [SkillNames.VUE]: { id: 6, name: "vue", label: "Vue", shortDescription: "frontend zen garden with reactive bonsai vibes 🟢😌", color: "#41b883", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" },
+  [SkillNames.NEXTJS]: { id: 7, name: "nextjs", label: "Next.js", shortDescription: "SSR sorcery with a sprinkle of router drama 👑🪄", color: "#fff", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" },
+  [SkillNames.TAILWIND]: { id: 8, name: "tailwind", label: "Tailwind", shortDescription: "utility drip so strong it bends time-to-ship ⏩🌪️", color: "#38bdf8", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" },
+  [SkillNames.NODEJS]: { id: 9, name: "nodejs", label: "Node.js", shortDescription: "JavaScript's backend cosplay, event loop edition 🔄🟢", color: "#6cc24a", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" },
+  [SkillNames.EXPRESS]: { id: 10, name: "express", label: "Express", shortDescription: "middlewares on a diet—minimal, spicy, fast 🛤️💨", color: "#fff", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg" },
+  [SkillNames.POSTGRES]: { id: 11, name: "postgres", label: "PostgreSQL", shortDescription: "relational powerhouse with elephant memory 🐘💾", color: "#336791", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" },
+  [SkillNames.MONGODB]: { id: 12, name: "mongodb", label: "MongoDB", shortDescription: "document hoarder with flexible vibes 🗂️🍃", color: "#336791", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg" },
+  [SkillNames.GIT]: { id: 13, name: "git", label: "Git", shortDescription: "time travel for code, with merge plot twists ⏳🌀", color: "#f1502f", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" },
+  [SkillNames.GITHUB]: { id: 14, name: "github", label: "GitHub", shortDescription: "PR central where branches learn to play nice 🐙🤝", color: "#000000", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" },
+  [SkillNames.PRETTIER]: { id: 15, name: "prettier", label: "Prettier", shortDescription: "auto-format fairy that hushes lint fights 🧹✨", color: "#f7b93a", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prettier/prettier-original.svg" },
+  [SkillNames.NPM]: { id: 16, name: "npm", label: "NPM", shortDescription: "the OG package plug—mind the dependency maze 📦🧭", color: "#fff", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/npm/npm-original-wordmark.svg" },
+  [SkillNames.FIREBASE]: { id: 17, name: "firebase", label: "Firebase", shortDescription: "rapid backend-in-a-box; watch for the vendor vines 🔥🎒", color: "#ffca28", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" },
+  [SkillNames.WORDPRESS]: { id: 18, name: "wordpress", label: "WordPress", shortDescription: "CMS elder with a million plugins and opinions 🧓🔌", color: "#007acc", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/wordpress/wordpress-plain.svg" },
+  [SkillNames.LINUX]: { id: 19, name: "linux", label: "Linux", shortDescription: "kernel kingdom for terminal goblins 🧙‍♂️🐧", color: "#fff", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" },
+  [SkillNames.DOCKER]: { id: 20, name: "docker", label: "Docker", shortDescription: "container Tetris that actually stacks right 🐳📦", color: "#2496ed", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" },
+  [SkillNames.NGINX]: { id: 21, name: "nginx", label: "NginX", shortDescription: "reverse proxy sprinter with cache-for-days 🏎️🌀", color: "#008000", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nginx/nginx-original.svg" },
+  [SkillNames.AWS]: { id: 22, name: "aws", label: "AWS", shortDescription: "cloud buffet—powerful, but don't lose your plate 🌐⚡", color: "#ff9900", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/aws/aws-original.svg" },
+  [SkillNames.VIM]: { id: 23, name: "vim", label: "Vim", shortDescription: "modal wizardry; escape key sold separately 🧙‍♂️🚪", color: "#e34c26", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vim/vim-original.svg" },
+  [SkillNames.VERCEL]: { id: 24, name: "vercel", label: "Vercel", shortDescription: "deploy, hydrate, touch grass—the triangle's got you 🚀🌿", color: "#6cc24a", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg" },
 };
+
+// ─── Experience (Hugo's real data) ─────────────────────────────────────────────
 
 export type Experience = {
   id: number;
-  startDate: string;
-  endDate: string;
+  period: string;
+  shortYear: string;        // for timeline display
   title: string;
   company: string;
+  location: string;
   description: string[];
-  skills: SkillNames[];
 };
 
 export const EXPERIENCE: Experience[] = [
   {
     id: 1,
-    startDate: "Jun 2023",
-    endDate: "Present",
-    title: "Sr. MERN Stack Developer",
-    company: "Code Encoders",
+    period: "2022 — 2023",
+    shortYear: "2022 — 2023",
+    title: "GRAPHISTE — SCÉNOGRAPHE",
+    company: "Université de Montpellier — DCSPH",
+    location: "Montpellier",
     description: [
-      "Leveled up from Associate to Senior while shipping 45+ full-stack builds without burning the servers down.",
-      "Dragged legacy Node into the Nest.js era and kept Swagger honest so nobody ships mystery endpoints.",
-      "Split bundles, lazy-loaded everything, tightened APIs, sprinkled Jest, and let GitHub Actions babysit deployments.",
-    ],
-    skills: [
-      SkillNames.REACT,
-      SkillNames.NODEJS,
-      SkillNames.EXPRESS,
-      SkillNames.MONGODB,
-      SkillNames.TAILWIND,
+      "J'ai eu la chance de collaborer pendant l'année scolaire 2022—2023 avec l'Université de Montpellier, au sein de la Direction de la Culture Scientifique et du Patrimoine Historique, dans le cadre d'un contrat de service civique et pour répondre aux missions du programme national et public PATSTEC.",
+      "Le fait notable de ce contrat avec l'Université de Montpellier a été la conception et le montage in situ de l'exposition itinérante Prototypes, de l'expérimentation à l'innovation.",
     ],
   },
   {
     id: 2,
-    startDate: "May 2024",
-    endDate: "Dec 2024",
-    title: "Sr. Web Developer",
-    company: "Pixle Digital",
+    period: "2024-2025",
+    shortYear: "2024-2025",
+    title: "GRAPHISTE — MONTEUR",
+    company: "Jamais Assez Toujours Trop",
+    location: "Montpellier",
     description: [
-      "Steered remote squads and set the coding rules so client apps didn’t devolve into spaghetti.",
-      "Rolled out reusable kits and boilerplates that bumped accuracy and shaved delivery time like a speedrun.",
-      "Mentored devs, tuned workflows, and watched team productivity glow up without extra coffee.",
-    ],
-    skills: [
-      SkillNames.REACT,
-      SkillNames.TS,
-      SkillNames.TAILWIND,
-      SkillNames.NODEJS,
-      SkillNames.GIT,
+      "J'ai rejoint le pôle graphisme et direction artistique du média web pour jeunes artistes indépendants Jamais Assez Toujours Trop (JATT) à la fin d'année 2024.",
+      "Cette expérience m'a permis de renforcer davantage ma capacité à travailler en équipe, au contact et au services d'artistes talentueux, mais aussi en autonomie.",
     ],
   },
   {
     id: 3,
-    startDate: "Sep 2022",
-    endDate: "Mar 2023",
-    title: "Front-End Developer",
-    company: "ZikraInfoTech",
+    period: "Juin — Août 2025",
+    shortYear: "2025",
+    title: "GRAPHISTE 3D — DESIGNER TEXTILE — SCÉNOGRAPHE",
+    company: "Orbe",
+    location: "Paris",
     description: [
-      "Built inclusive, multilingual UIs and rapid Firebase prototypes so everyone could click happily.",
-      "Ran perf audits, bumped Lighthouse by ~20%, and kept layouts responsive on every weird viewport.",
-      "Pushed accessibility basics so launches worked for humans, not just linters.",
-    ],
-    skills: [
-      SkillNames.REACT,
-      SkillNames.FIREBASE,
-      SkillNames.TAILWIND,
-      SkillNames.HTML,
-      SkillNames.CSS,
-    ],
-  },
-  {
-    id: 4,
-    startDate: "Jun 2022",
-    endDate: "Aug 2022",
-    title: "Jr. ReactJS Developer",
-    company: "Intellisnc",
-    description: [
-      "Jumped in with React, shipping sprint-sized web apps before learning where the coffee machine was.",
-      "Obsessed over semantic HTML, responsive grids, and cross-browser quirks so things didn’t break on demo day.",
-    ],
-    skills: [
-      SkillNames.REACT,
-      SkillNames.HTML,
-      SkillNames.CSS,
-      SkillNames.TAILWIND,
-      SkillNames.GIT,
+      "J'ai été contacté pendant l'été 2025 par le collectif d'artistes parisien Orbe, pour assister la conception et la mise en place de l'environnement sensoriel et interactif itinérant Perception(s), en collaboration avec la compagnie Contour Progressif — Mylène Benoit.",
+      "Conceptualisation scénographique conjuguant textile, aménagement spatial et expérience utilisateur.",
     ],
   },
 ];
+
+// ─── Formation ──────────────────────────────────────────────────────────────────
+
+export const FORMATION = {
+  degree: "Master Création Numérique",
+  parcours: "Images Animées et Technologies Interactives",
+  school: "Université Paul Valéry",
+  period: "2024 — 2026",
+};
+
+// ─── Tools (organised by category) ─────────────────────────────────────────────
+
+export const TOOLS: Record<string, string[]> = {
+  "3D & Motion":  ["Blender", "Cinema 4D", "ZBrush", "CLO 3D", "After Effects", "Cavalry"],
+  "Temps réel":   ["TouchDesigner", "Unity", "Unreal Engine", "Arduino"],
+  "Post-prod":    ["DaVinci Resolve", "Ableton Live", "Nuke", "Photoshop"],
+  "Code":         ["JavaScript", "Python", "C#"],
+};
+
+// ─── Theme disclaimers (unchanged) ─────────────────────────────────────────────
 
 export const themeDisclaimers = {
   light: [

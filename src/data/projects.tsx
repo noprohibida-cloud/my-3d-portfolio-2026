@@ -7,6 +7,7 @@ export type SimpleProject = {
   url: string;
   tech: string[];
   hasModal?: boolean;
+  internal?: boolean;
 };
 
 export const PROJECTS: SimpleProject[] = [
@@ -16,9 +17,9 @@ export const PROJECTS: SimpleProject[] = [
     imageSrc: "/assets/projects-screenshots/prototypes/affiche-bleue.jpg",
     description: "L'exemple occitan — Exposition 2023",
     gradient: ["#0d0e1f", "#2D3069"],
-    url: "#",
+    url: "/prototypes",
     tech: [],
-    hasModal: true,
+    internal: true,
   },
   {
     name: "BlockMed Pro",
