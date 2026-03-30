@@ -45,16 +45,21 @@ export const SKILLS: Record<SkillNames, Skill> = {
   [SkillNames.VERCEL]: { id: 24, name: "vercel", label: "Vercel", shortDescription: "deploy, hydrate, touch grass—the triangle's got you 🚀🌿", color: "#6cc24a", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg" },
 };
 
-// ─── Experience (Hugo's real data) ─────────────────────────────────────────────
+// ─── Experience ────────────────────────────────────────────────────────────────
 
 export type Experience = {
   id: number;
   period: string;
-  shortYear: string;        // for timeline display
+  shortYear: string;
   title: string;
   company: string;
   location: string;
+  image: string;
+  // Termes à mettre en valeur dans le texte (entreprises, partenaires, institutions)
+  highlights: string[];
   description: string[];
+  // Compétences mobilisées — affichées comme des tuiles d'opérateurs TouchDesigner
+  skills: string[];
 };
 
 export const EXPERIENCE: Experience[] = [
@@ -65,22 +70,36 @@ export const EXPERIENCE: Experience[] = [
     title: "GRAPHISTE — SCÉNOGRAPHE",
     company: "Université de Montpellier — DCSPH",
     location: "Montpellier",
+    image: "/assets/experience/prototypes.png",
+    highlights: [
+      "Université de Montpellier",
+      "Direction de la Culture Scientifique et du Patrimoine Historique",
+      "PATSTEC",
+      "Prototypes",
+    ],
     description: [
       "J'ai eu la chance de collaborer pendant l'année scolaire 2022—2023 avec l'Université de Montpellier, au sein de la Direction de la Culture Scientifique et du Patrimoine Historique, dans le cadre d'un contrat de service civique et pour répondre aux missions du programme national et public PATSTEC.",
       "Le fait notable de ce contrat avec l'Université de Montpellier a été la conception et le montage in situ de l'exposition itinérante Prototypes, de l'expérimentation à l'innovation.",
     ],
+    skills: ["Signalétique", "Motion Design", "Typographie", "Print", "Installation", "Photographie", "Médiation culturelle"],
   },
   {
     id: 2,
-    period: "2024-2025",
-    shortYear: "2024-2025",
+    period: "2024 — 2025",
+    shortYear: "2024 — 2025",
     title: "GRAPHISTE — MONTEUR",
     company: "Jamais Assez Toujours Trop",
     location: "Montpellier",
+    image: "/assets/experience/jatt.jpg",
+    highlights: [
+      "Jamais Assez Toujours Trop",
+      "JATT",
+    ],
     description: [
       "J'ai rejoint le pôle graphisme et direction artistique du média web pour jeunes artistes indépendants Jamais Assez Toujours Trop (JATT) à la fin d'année 2024.",
-      "Cette expérience m'a permis de renforcer davantage ma capacité à travailler en équipe, au contact et au services d'artistes talentueux, mais aussi en autonomie.",
+      "Cette expérience m'a permis de renforcer davantage ma capacité à travailler en équipe, au contact et au service d'artistes talentueux, mais aussi en autonomie.",
     ],
+    skills: ["Graphisme", "Motion Design", "Montage vidéo", "Direction artistique", "Identité visuelle", "Branding"],
   },
   {
     id: 3,
@@ -89,10 +108,18 @@ export const EXPERIENCE: Experience[] = [
     title: "GRAPHISTE 3D — DESIGNER TEXTILE — SCÉNOGRAPHE",
     company: "Orbe",
     location: "Paris",
+    image: "/assets/experience/orbe.jpg",
+    highlights: [
+      "Orbe",
+      "Perception(s)",
+      "Contour Progressif",
+      "Mylène Benoit",
+    ],
     description: [
       "J'ai été contacté pendant l'été 2025 par le collectif d'artistes parisien Orbe, pour assister la conception et la mise en place de l'environnement sensoriel et interactif itinérant Perception(s), en collaboration avec la compagnie Contour Progressif — Mylène Benoit.",
       "Conceptualisation scénographique conjuguant textile, aménagement spatial et expérience utilisateur.",
     ],
+    skills: ["CLO 3D", "Scénographie", "Design textile", "Modélisation 3D", "TouchDesigner", "Installation interactive"],
   },
 ];
 
@@ -105,7 +132,7 @@ export const FORMATION = {
   period: "2024 — 2026",
 };
 
-// ─── Tools (organised by category) ─────────────────────────────────────────────
+// ─── Tools ─────────────────────────────────────────────────────────────────────
 
 export const TOOLS: Record<string, string[]> = {
   "3D & Motion":  ["Blender", "Cinema 4D", "ZBrush", "CLO 3D", "After Effects", "Cavalry"],
@@ -114,7 +141,7 @@ export const TOOLS: Record<string, string[]> = {
   "Code":         ["JavaScript", "Python", "C#"],
 };
 
-// ─── Theme disclaimers (unchanged) ─────────────────────────────────────────────
+// ─── Theme disclaimers ─────────────────────────────────────────────────────────
 
 export const themeDisclaimers = {
   light: [
