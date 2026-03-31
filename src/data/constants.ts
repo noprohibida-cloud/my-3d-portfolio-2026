@@ -45,24 +45,12 @@ export const SKILLS: Record<SkillNames, Skill> = {
   [SkillNames.VERCEL]: { id: 24, name: "vercel", label: "Vercel", shortDescription: "deploy, hydrate, touch grass—the triangle's got you 🚀🌿", color: "#6cc24a", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg" },
 };
 
+export type SkillCategory = "outil" | "technique" | "contexte";
+export type SkillTag = { label: string; category: SkillCategory };
+
 // ─── Experience ────────────────────────────────────────────────────────────────
 
-export type Experience = {
-  id: number;
-  period: string;
-  shortYear: string;
-  title: string;
-  company: string;
-  location: string;
-  image: string;
-  // Termes à mettre en valeur dans le texte (entreprises, partenaires, institutions)
-  highlights: string[];
-  description: string[];
-  // Compétences mobilisées — affichées comme des tuiles d'opérateurs TouchDesigner
-  skills: string[];
-};
-
-export const EXPERIENCE: Experience[] = [
+export const EXPERIENCE = [
   {
     id: 1,
     period: "2022 — 2023",
@@ -81,7 +69,19 @@ export const EXPERIENCE: Experience[] = [
       "J'ai eu la chance de collaborer pendant l'année scolaire 2022—2023 avec l'Université de Montpellier, au sein de la Direction de la Culture Scientifique et du Patrimoine Historique, dans le cadre d'un contrat de service civique et pour répondre aux missions du programme national et public PATSTEC.",
       "Le fait notable de ce contrat avec l'Université de Montpellier a été la conception et le montage in situ de l'exposition itinérante Prototypes, de l'expérimentation à l'innovation.",
     ],
-    skills: ["Signalétique", "Motion Design", "Typographie", "Print", "Installation", "Photographie", "Médiation culturelle"],
+    skills: [
+      { label: "Signalétique",           category: "technique" },
+      { label: "Typographie",            category: "technique" },
+      { label: "Motion Design",          category: "technique" },
+      { label: "Print",                  category: "technique" },
+      { label: "Photographie",           category: "technique" },
+      { label: "Adobe Illustrator",      category: "outil" },
+      { label: "Adobe InDesign",         category: "outil" },
+      { label: "After Effects",          category: "outil" },
+      { label: "Exposition itinérante",  category: "contexte" },
+      { label: "Médiation culturelle",   category: "contexte" },
+      { label: "Patrimoine scientifique",category: "contexte" },
+    ],
   },
   {
     id: 2,
@@ -91,15 +91,23 @@ export const EXPERIENCE: Experience[] = [
     company: "Jamais Assez Toujours Trop",
     location: "Montpellier",
     image: "/assets/experience/jatt.jpg",
-    highlights: [
-      "Jamais Assez Toujours Trop",
-      "JATT",
-    ],
+    highlights: ["Jamais Assez Toujours Trop", "JATT"],
     description: [
       "J'ai rejoint le pôle graphisme et direction artistique du média web pour jeunes artistes indépendants Jamais Assez Toujours Trop (JATT) à la fin d'année 2024.",
       "Cette expérience m'a permis de renforcer davantage ma capacité à travailler en équipe, au contact et au service d'artistes talentueux, mais aussi en autonomie.",
     ],
-    skills: ["Graphisme", "Motion Design", "Montage vidéo", "Direction artistique", "Identité visuelle", "Branding"],
+    skills: [
+      { label: "Direction artistique", category: "technique" },
+      { label: "Identité visuelle",    category: "technique" },
+      { label: "Graphisme éditorial",  category: "technique" },
+      { label: "Montage vidéo",        category: "technique" },
+      { label: "Motion Design",        category: "technique" },
+      { label: "Premiere Pro",         category: "outil" },
+      { label: "Photoshop",            category: "outil" },
+      { label: "Illustrator",          category: "outil" },
+      { label: "Média indépendant",    category: "contexte" },
+      { label: "Branding",             category: "contexte" },
+    ],
   },
   {
     id: 3,
@@ -109,20 +117,26 @@ export const EXPERIENCE: Experience[] = [
     company: "Orbe",
     location: "Paris",
     image: "/assets/experience/orbe.jpg",
-    highlights: [
-      "Orbe",
-      "Perception(s)",
-      "Contour Progressif",
-      "Mylène Benoit",
-    ],
+    highlights: ["Orbe", "Perception(s)", "Contour Progressif", "Mylène Benoit"],
     description: [
       "J'ai été contacté pendant l'été 2025 par le collectif d'artistes parisien Orbe, pour assister la conception et la mise en place de l'environnement sensoriel et interactif itinérant Perception(s), en collaboration avec la compagnie Contour Progressif — Mylène Benoit.",
       "Conceptualisation scénographique conjuguant textile, aménagement spatial et expérience utilisateur.",
     ],
-    skills: ["CLO 3D", "Scénographie", "Design textile", "Modélisation 3D", "TouchDesigner", "Installation interactive"],
+    skills: [
+      { label: "Scénographie",           category: "technique" },
+      { label: "Design textile",         category: "technique" },
+      { label: "Modélisation 3D",        category: "technique" },
+      { label: "Expérience interactive", category: "technique" },
+      { label: "CLO 3D",                 category: "outil" },
+      { label: "TouchDesigner",          category: "outil" },
+      { label: "Blender",                category: "outil" },
+      { label: "Installation itinérante",category: "contexte" },
+      { label: "Art collectif",          category: "contexte" },
+      { label: "Danse contemporaine",    category: "contexte" },
+    ],
   },
 ];
-
+ 
 // ─── Formation ──────────────────────────────────────────────────────────────────
 
 export const FORMATION = {
