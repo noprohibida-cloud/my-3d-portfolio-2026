@@ -74,8 +74,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={[inter.variable, archivoBlack.variable, "font-display"].join(" ")} suppressHydrationWarning>
-      <head>
+<html lang="en" className={[inter.variable, archivoBlack.variable, satoshi.variable, "font-display"].join(" ")} suppressHydrationWarning>      <head>
         <Script
           defer
           src={process.env.UMAMI_DOMAIN}
