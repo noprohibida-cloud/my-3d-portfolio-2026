@@ -11,12 +11,17 @@ import ScrollDownIcon from "../scroll-down-icon";
 import { config } from "@/data/config";
 import SectionWrapper from "../ui/section-wrapper";
 import ScrambleText from "../scramble-text";
+import CliffordCanvas from "../CliffordCanvas";
 
 const HeroSection = () => {
   const { isLoading } = usePreloader();
 
   return (
     <SectionWrapper id="hero" className={cn("relative w-full h-[100dvh]")}>
+
+      {/* Canvas Clifford — absolu dans le hero, derrière tout le contenu */}
+      <CliffordCanvas />
+
       <div className="grid md:grid-cols-2">
         <div
           className={cn(
@@ -96,6 +101,7 @@ const HeroSection = () => {
         </div>
         <div className="grid col-span-1"></div>
       </div>
+
       <div className="absolute bottom-10 left-[50%] translate-x-[-50%]">
         <ScrollDownIcon />
       </div>

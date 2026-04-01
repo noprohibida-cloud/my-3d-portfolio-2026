@@ -37,11 +37,12 @@ body {
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* ─── Fond corrigé : #07080d au lieu du bleu roi #0d1a6e ─── */
+    --background: 220 30% 3%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 220 30% 3%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 220 30% 3%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -69,8 +70,10 @@ body {
     @apply border-border;
   }
 
+  /* Body : fond opaque #07080d — pas de transparence parasite */
   body {
-    @apply bg-background text-foreground;
+    background-color: #07080d;
+    @apply text-foreground;
   }
 }
 
