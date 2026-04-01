@@ -180,17 +180,53 @@ const SignalIcon = ({ active }: { active: boolean }) => (
 );
 
 // ─── HighlightedText ──────────────────────────────────────────────────────────
-function HighlightedText({ text, highlights }: { text: string; highlights: string[] }) {
-  if (!highlights.length) return <>{text}</>;
-  const esc   = highlights.map(h => h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+type HighlightSpec = { text: string; color?: string };
+type HighlightInput = string | HighlightSpec | null | undefined;
+
+function HighlightedText({
+  text,
+  highlights,
+}: {
+  text: string;
+  highlights?: HighlightInput[];
+}) {
+  // Normalise et nettoie les highlights
+  const normalized: HighlightSpec[] = (highlights ?? [])
+    .filter(Boolean)
+    .map((h) =>
+      typeof h === "string"
+        ? { text: h }
+        : { text: h!.text, color: h!.color }
+    )
+    .filter((h) => !!h.text);
+
+  if (!normalized.length) return <>{text}</>;
+
+  // construire la regex à partir des .text
+  const esc = normalized
+    .map((h) => h.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
   const regex = new RegExp(`(${esc})`, "g");
+
   return (
     <>
-      {text.split(regex).map((part, i) =>
-        highlights.includes(part)
-          ? <span key={i} style={{ color: "rgba(255,255,255,0.92)", fontWeight: 600 }}>{part}</span>
-          : <span key={i}>{part}</span>
-      )}
+      {text.split(regex).map((part, i) => {
+        const spec = normalized.find((h) => h.text === part);
+        if (spec) {
+          return (
+            <span
+              key={i}
+              style={{
+                color: spec.color ?? "rgba(255,255,255,0.92)",
+                fontWeight: 600,
+              }}
+            >
+              {part}
+            </span>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
     </>
   );
 }
@@ -345,9 +381,9 @@ const ExperienceSection: React.FC = () => {
                   }}>
                     <h3 style={{
                       fontSize: "clamp(1.15rem,1.8vw,2rem)", fontWeight: 700, color: "#fff",
-                      letterSpacing: "-0.02em", lineHeight: 1.0,
+                      letterSpacing: "-0.02em", lineHeight: 1.5,
                       marginBottom: "clamp(10px,1.5vh,16px)",
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      whiteSpace: "pre-line", overflow: "hidden", textOverflow: "ellipsis",
                     }}>{exp.title}</h3>
                     <div style={{
                       display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap",
