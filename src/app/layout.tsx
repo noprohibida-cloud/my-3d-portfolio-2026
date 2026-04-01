@@ -12,9 +12,9 @@ import Script from "next/script";
 import AppOverlays from "@/components/app-overlays";
 import { Providers } from "@/components/providers";
 
-const satoshi = localFont({
-  src: "../fonts/satoshi/Satoshi-Regular.otf",
-  variable: "--font-satoshi",
+const space = localFont({
+  src: "../fonts/space/SpaceNotoriousRounded.otf",
+  variable: "--font-space",
   weight: "400",
 });
 
@@ -83,7 +83,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={[inter.variable, archivoBlack.variable, satoshi.variable, "font-display"].join(" ")}
+      className={[inter.variable, archivoBlack.variable, space.variable, "font-display"].join(" ")}
       suppressHydrationWarning
     >
       <head>

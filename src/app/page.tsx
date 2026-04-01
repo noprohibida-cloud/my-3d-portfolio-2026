@@ -1,26 +1,49 @@
 "use client";
 
+import React from "react";
 import SmoothScroll from "@/components/smooth-scroll";
 import AnimatedBackground from "@/components/animated-background";
-import HeroSection from "@/components/sections/hero";
 import SkillsSection from "@/components/sections/skills";
 import ExperienceSection from "@/components/sections/experience";
 import ProjectsSection from "@/components/sections/projects-3d-gallery";
 import ContactSection from "@/components/sections/contact";
+import HeroSection from "@/components/sections/hero";
 import HeroBackground from "@/components/HeroBackground";
+import Script from "next/script";
+import { config } from "@/data/config";
 
-export default function Home() {
+function MainPage() {
   return (
     <>
       <HeroBackground />
       <SmoothScroll>
+        <Script
+          id="ld-json-home"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              name: config.title,
+              url: config.site,
+              description: config.description.long,
+              inLanguage: "en",
+              author: { "@type": "Person", name: config.author, url: config.site },
+              publisher: { "@type": "Person", name: config.author },
+            }),
+          }}
+        />
         <AnimatedBackground />
-        <HeroSection />
-        <SkillsSection />
-        <ExperienceSection />
-        <ProjectsSection />
-        <ContactSection />
+        <main>
+          <HeroSection />
+          <SkillsSection />
+          <ExperienceSection />
+          <ProjectsSection />
+          <ContactSection />
+        </main>
       </SmoothScroll>
     </>
   );
 }
+
+export default MainPage;

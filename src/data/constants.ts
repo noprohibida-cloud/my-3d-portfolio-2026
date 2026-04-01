@@ -18,7 +18,7 @@ export const EXPERIENCE = [
     ],
     description: [
       "J'ai eu la chance de collaborer pendant l'année scolaire 2022—2023 avec l'Université de Montpellier, au sein de la Direction de la Culture Scientifique et du Patrimoine Historique, dans le cadre d'un contrat de service civique et pour répondre aux missions du programme national et public PATSTEC.",
-      "Le fait notable de ce contrat avec l'Université de Montpellier a été la conception et le montage in situ de l'exposition itinérante Prototypes, de l'expérimentation à l'innovation.",
+      "Le fait notable de cette collaboration avec l'Université de Montpellier a été la conception et le montage in situ de l'exposition itinérante et publique : Prototypes. De l'expérimentation à l'innovation, l'exemple occitan.",
     ],
     skills: [
       // technique — savoir-faire directs
@@ -44,7 +44,7 @@ export const EXPERIENCE = [
     image: "/assets/experience/jatt.jpg",
     highlights: ["Jamais Assez Toujours Trop", "JATT"],
     description: [
-      "J'ai rejoint le pôle graphisme et direction artistique du média web pour jeunes artistes indépendants Jamais Assez Toujours Trop (JATT) à la fin d'année 2024.",
+      "J'ai rejoint le pôle graphisme et direction artistique du média web pour jeunes artistes indépendants : Jamais Assez Toujours Trop (JATT), à la fin d'année 2024.",
       "Cette expérience m'a permis de renforcer davantage ma capacité à travailler en équipe, au contact et au service d'artistes talentueux, mais aussi en autonomie et à distance physique des autres membres de l'équipe.",
     ],
     skills: [
@@ -73,7 +73,7 @@ export const EXPERIENCE = [
     highlights: ["Orbe", "Perception(s)", "Contour Progressif", "Mylène Benoit"],
     description: [
       "J'ai été contacté pendant l'été 2025 par le collectif d'artistes parisien Orbe, pour assister la conception et la mise en place de l'environnement sensoriel et interactif itinérant Perception(s), en collaboration avec la compagnie Contour Progressif — Mylène Benoit.",
-      "Conceptualisation scénographique conjuguant textile, aménagement spatial et expérience utilisateur.",
+      "Cette expérience m'a permis de professionnaliser et aiguiser plus encore ma pratique du design d'interaction. Mes compétences de graphiste 3D (CLO 3D / Marvelous Designer) et de designer textile et d'interaction ont elles aussi été largement mobilisées.",
     ],
     skills: [
       // technique

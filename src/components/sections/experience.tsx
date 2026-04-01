@@ -351,11 +351,11 @@ const ExperienceSection: React.FC = () => {
                     }}>{exp.title}</h3>
                     <div style={{
                       display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap",
-                      fontFamily: "monospace", fontSize: "11px",
-                      color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em",
+                      fontFamily: "var(--font-space), sans-serif", fontSize: "15px",
+                      color: "#f3d35e", letterSpacing: "0.1em",
                     }}>
                       <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 500 }}>{exp.company}</span>
-                      <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
+                      <span style={{ color: "#ffffff" }}>·</span>
                       <span>{exp.location}</span>
                     </div>
                   </div>
@@ -379,9 +379,18 @@ const ExperienceSection: React.FC = () => {
                 }}>
                   {exp.description.map((para, j) => (
                     <p key={j} style={{
-                      fontFamily: "var(--font-satoshi), sans-serif",
-                      fontSize: "clamp(12px,1.2vw,14px)", color: "rgba(255,255,255,0.42)",
-                      lineHeight: 1.85, textAlign: "justify", hyphens: "auto",
+                      fontFamily: "var(--font-space), sans-serif",
+                        fontSize:         "clamp(13px, 1.1vw, 16px)",
+                        color:            "rgba(255,255,255,0.62)",
+                        lineHeight:       1.95,
+                        textAlign:        "justify",
+                        hyphens:          "auto",
+                        hyphenateCharacter: "'‐'",
+                        overflowWrap:     "break-word",
+                        wordBreak:        "break-word",
+                        letterSpacing:    "0.005em",
+                        fontKerning:      "normal",
+                        fontOpticalSizing: "auto",
                     }}>
                       <HighlightedText text={para} highlights={exp.highlights} />
                     </p>
