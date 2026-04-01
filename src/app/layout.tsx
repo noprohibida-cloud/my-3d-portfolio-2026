@@ -1,15 +1,33 @@
 import type { Metadata } from "next";
 import { Inter, Archivo_Black } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { config } from "@/data/config";
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import Header from "@/components/header/header";
 import Footer from "@/components/footer/footer";
 import Script from "next/script";
 import AppOverlays from "@/components/app-overlays";
 import { Providers } from "@/components/providers";
+
+const satoshi = localFont({
+  src: "../fonts/satoshi/Satoshi-Regular.otf",
+  variable: "--font-satoshi",
+  weight: "400",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const archivoBlack = Archivo_Black({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   title: config.title,
@@ -57,24 +75,18 @@ export const metadata: Metadata = {
   },
 };
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const archivoBlack = Archivo_Black({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display",
-});
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-<html lang="en" className={[inter.variable, archivoBlack.variable, satoshi.variable, "font-display"].join(" ")} suppressHydrationWarning>      <head>
+    <html
+      lang="en"
+      className={[inter.variable, archivoBlack.variable, satoshi.variable, "font-display"].join(" ")}
+      suppressHydrationWarning
+    >
+      <head>
         <Script
           defer
           src={process.env.UMAMI_DOMAIN}

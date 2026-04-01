@@ -379,7 +379,7 @@ const ExperienceSection: React.FC = () => {
                 }}>
                   {exp.description.map((para, j) => (
                     <p key={j} style={{
-                      fontFamily: "var(--font-satoshi), 'Helvetica Neue', sans-serif",
+                      fontFamily: "var(--font-satoshi), sans-serif",
                       fontSize: "clamp(12px,1.2vw,14px)", color: "rgba(255,255,255,0.42)",
                       lineHeight: 1.85, textAlign: "justify", hyphens: "auto",
                     }}>

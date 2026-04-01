@@ -7,16 +7,20 @@ import SkillsSection from "@/components/sections/skills";
 import ExperienceSection from "@/components/sections/experience";
 import ProjectsSection from "@/components/sections/projects-3d-gallery";
 import ContactSection from "@/components/sections/contact";
+import HeroBackground from "@/components/HeroBackground";
 
 export default function Home() {
   return (
-    <SmoothScroll>
-      <AnimatedBackground />
-      <HeroSection />
-      <SkillsSection />
-      <ExperienceSection />
-      <ProjectsSection />
-      <ContactSection />
-    </SmoothScroll>
+    <>
+      <HeroBackground />
+      <SmoothScroll>
+        <AnimatedBackground />
+        <HeroSection />
+        <SkillsSection />
+        <ExperienceSection />
+        <ProjectsSection />
+        <ContactSection />
+      </SmoothScroll>
+    </>
   );
 }
