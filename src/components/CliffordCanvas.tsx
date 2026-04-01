@@ -70,43 +70,79 @@ void main() {
 
 function compile(gl: WebGLRenderingContext, type: number, src: string) {
   const s = gl.createShader(type)!;
-  gl.shaderSource(s, src); gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
     console.error("[Clifford]", gl.getShaderInfoLog(s));
+  }
   return s;
 }
+
 function mkProg(gl: WebGLRenderingContext, vs: string, fs: string) {
   const p = gl.createProgram()!;
   gl.attachShader(p, compile(gl, gl.VERTEX_SHADER, vs));
   gl.attachShader(p, compile(gl, gl.FRAGMENT_SHADER, fs));
-  gl.linkProgram(p); return p;
+  gl.linkProgram(p);
+  return p;
 }
+
 function makeRT(gl: WebGLRenderingContext, w: number, h: number) {
   const tex = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, tex);
   const init = new Uint8Array(w * h * 4);
   for (let i = 0; i < w * h; i++) {
-    init[i*4]=7; init[i*4+1]=8; init[i*4+2]=13; init[i*4+3]=255;
+    init[i * 4] = 7;
+    init[i * 4 + 1] = 8;
+    init[i * 4 + 2] = 13;
+    init[i * 4 + 3] = 255;
   }
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, init);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    w,
+    h,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    init
+  );
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   const fb = gl.createFramebuffer()!;
   gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    tex,
+    0
+  );
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   return { tex, fb };
 }
-function fillBatch(pos: Float32Array, st: {x:number;y:number}, a:number,b:number,c:number,d:number) {
-  let {x,y} = st;
+
+function fillBatch(
+  pos: Float32Array,
+  st: { x: number; y: number },
+  a: number,
+  b: number,
+  c: number,
+  d: number
+) {
+  let { x, y } = st;
   for (let i = 0; i < N_BATCH; i++) {
-    const nx = Math.sin(a*y) + c*Math.cos(a*x);
-    const ny = Math.sin(b*x) + d*Math.cos(b*y);
-    x=nx; y=ny; pos[i*2]=x; pos[i*2+1]=y;
+    const nx = Math.sin(a * y) + c * Math.cos(a * x);
+    const ny = Math.sin(b * x) + d * Math.cos(b * y);
+    x = nx;
+    y = ny;
+    pos[i * 2] = x;
+    pos[i * 2 + 1] = y;
   }
-  st.x=x; st.y=y;
+  st.x = x;
+  st.y = y;
 }
 
 export default function CliffordCanvas() {
@@ -116,29 +152,63 @@ export default function CliffordCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const DPR = Math.min(window.devicePixelRatio, 2);
-    let rafId: number;
+    let gl: WebGLRenderingContext | null = null;
+    let rafId = 0;
     let started = false;
 
-    // Contexte et ressources — déclarés ici pour accès dans cleanup
-    let gl: WebGLRenderingContext | null = null;
-    let pAccum: WebGLProgram, pDecay: WebGLProgram, pDisplay: WebGLProgram;
+    // programmes / buffers / RT
+    let pAccum: WebGLProgram;
+    let pDecay: WebGLProgram;
+    let pDisplay: WebGLProgram;
     let aL: any, dcL: any, dpL: any;
-    let quadBuf: WebGLBuffer, posBuf: WebGLBuffer;
-    let rtA: {tex:WebGLTexture;fb:WebGLFramebuffer};
-    let rtB: {tex:WebGLTexture;fb:WebGLFramebuffer};
-    let W = 1, H = 1, aspect = 1;
+    let quadBuf: WebGLBuffer;
+    let posBuf: WebGLBuffer;
+    let rtA: { tex: WebGLTexture; fb: WebGLFramebuffer };
+    let rtB: { tex: WebGLTexture; fb: WebGLFramebuffer };
+
+    // taille & état
+    let W = 1;
+    let H = 1;
+    let aspect = 1;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let maxSize = 4096; // sera raffiné après création du contexte
+
+    // attracteur
     let frame = 0;
-    let presetIdx = 0, nextIdx = 1, morphT = 0.0;
+    let presetIdx = 0;
+    let nextIdx = 1;
+    let morphT = 0;
     const MORPH_FRAMES = 720;
     const posData = new Float32Array(N_BATCH * 2);
     const state = { x: 0.1, y: 0.1 };
 
-    const getParams = (): [number,number,number,number] => {
-      const [a0,b0,c0,d0] = PRESETS[presetIdx];
-      const [a1,b1,c1,d1] = PRESETS[nextIdx];
-      const e = morphT < 0.5 ? 4*morphT**3 : 1-(-2*morphT+2)**3/2;
-      return [a0+(a1-a0)*e, b0+(b1-b0)*e, c0+(c1-c0)*e, d0+(d1-d0)*e];
+    const getParams = (): [number, number, number, number] => {
+      const [a0, b0, c0, d0] = PRESETS[presetIdx];
+      const [a1, b1, c1, d1] = PRESETS[nextIdx];
+      const e = morphT < 0.5 ? 4 * morphT ** 3 : 1 - (-2 * morphT + 2) ** 3 / 2;
+      return [
+        a0 + (a1 - a0) * e,
+        b0 + (b1 - b0) * e,
+        c0 + (c1 - c0) * e,
+        d0 + (d1 - d0) * e,
+      ];
+    };
+
+    const computeSize = () => {
+      const cw = canvas.offsetWidth;
+      const ch = canvas.offsetHeight;
+      if (cw <= 0 || ch <= 0) {
+        return { W: 0, H: 0 };
+      }
+      let Wn = Math.round(cw * dpr);
+      let Hn = Math.round(ch * dpr);
+      const maxSide = Math.max(Wn, Hn);
+      if (maxSide > maxSize) {
+        const scale = maxSize / maxSide;
+        Wn = Math.round(Wn * scale);
+        Hn = Math.round(Hn * scale);
+      }
+      return { W: Wn, H: Hn };
     };
 
     const drawQuad = (loc: number) => {
@@ -151,37 +221,59 @@ export default function CliffordCanvas() {
     const tick = () => {
       rafId = requestAnimationFrame(tick);
 
-      // ── Attendre que le canvas ait une taille CSS réelle ─────────────
-      // Nécessaire car le preloader peut masquer la section hero au montage
+      // attente que le canvas ait une vraie taille CSS
       if (!started) {
         const cw = canvas.offsetWidth;
         const ch = canvas.offsetHeight;
-        if (cw < 10 || ch < 10) return; // pas encore layouté
-
-        // Initialisation WebGL au premier frame valide
-        W = Math.round(cw * DPR);
-        H = Math.round(ch * DPR);
-        aspect = W / H;
-        canvas.width  = W;
-        canvas.height = H;
+        if (cw < 10 || ch < 10) return;
 
         gl = canvas.getContext("webgl", {
-          antialias: false, alpha: false, depth: false,
-          stencil: false, preserveDrawingBuffer: false,
+          antialias: false,
+          alpha: false,
+          depth: false,
+          stencil: false,
+          preserveDrawingBuffer: false,
         });
         if (!gl) return;
 
-        pAccum   = mkProg(gl, ACCUM_VERT,  ACCUM_FRAG);
-        pDecay   = mkProg(gl, QUAD_VERT,   DECAY_FRAG);
-        pDisplay = mkProg(gl, QUAD_VERT,   DISPLAY_FRAG);
+        // capacités GPU → taille max des RT
+        const maxRT = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
+        const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+        maxSize = Math.min(maxRT, maxTex, 4096);
 
-        aL  = { aPos: gl.getAttribLocation(pAccum,  "aPos"), uAspect: gl.getUniformLocation(pAccum,   "uAspect") };
-        dcL = { aPos: gl.getAttribLocation(pDecay,  "aPos"), uTex:    gl.getUniformLocation(pDecay,   "uTex") };
-        dpL = { aPos: gl.getAttribLocation(pDisplay,"aPos"), uTex:    gl.getUniformLocation(pDisplay, "uTex"), uTime: gl.getUniformLocation(pDisplay,"uTime") };
+        const size = computeSize();
+        if (!size.W || !size.H) return;
+        W = size.W;
+        H = size.H;
+        aspect = W / H;
+        canvas.width = W;
+        canvas.height = H;
+
+        pAccum = mkProg(gl, ACCUM_VERT, ACCUM_FRAG);
+        pDecay = mkProg(gl, QUAD_VERT, DECAY_FRAG);
+        pDisplay = mkProg(gl, QUAD_VERT, DISPLAY_FRAG);
+
+        aL = {
+          aPos: gl.getAttribLocation(pAccum, "aPos"),
+          uAspect: gl.getUniformLocation(pAccum, "uAspect"),
+        };
+        dcL = {
+          aPos: gl.getAttribLocation(pDecay, "aPos"),
+          uTex: gl.getUniformLocation(pDecay, "uTex"),
+        };
+        dpL = {
+          aPos: gl.getAttribLocation(pDisplay, "aPos"),
+          uTex: gl.getUniformLocation(pDisplay, "uTex"),
+          uTime: gl.getUniformLocation(pDisplay, "uTime"),
+        };
 
         quadBuf = gl.createBuffer()!;
         gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          gl.STATIC_DRAW
+        );
 
         posBuf = gl.createBuffer()!;
         rtA = makeRT(gl, W, H);
@@ -193,29 +285,31 @@ export default function CliffordCanvas() {
       if (!gl) return;
 
       frame++;
-      morphT += 1/MORPH_FRAMES;
+      morphT += 1 / MORPH_FRAMES;
       if (morphT >= 1.0) {
         presetIdx = nextIdx;
-        nextIdx   = (nextIdx+1) % PRESETS.length;
-        morphT    = 0.0;
-        state.x   = Math.random()*0.4-0.2;
-        state.y   = Math.random()*0.4-0.2;
+        nextIdx = (nextIdx + 1) % PRESETS.length;
+        morphT = 0.0;
+        state.x = Math.random() * 0.4 - 0.2;
+        state.y = Math.random() * 0.4 - 0.2;
       }
-      const [a,b,c,d] = getParams();
+      const [a, b, c, d] = getParams();
 
-      // Decay
+      // decay
       gl.bindFramebuffer(gl.FRAMEBUFFER, rtB.fb);
-      gl.viewport(0,0,W,H);
+      gl.viewport(0, 0, W, H);
       gl.useProgram(pDecay);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, rtA.tex);
       gl.uniform1i(dcL.uTex, 0);
       drawQuad(dcL.aPos);
-      const tmp = rtA; rtA = rtB; rtB = tmp;
+      const tmp = rtA;
+      rtA = rtB;
+      rtB = tmp;
 
-      // Injection
+      // injection
       gl.bindFramebuffer(gl.FRAMEBUFFER, rtA.fb);
-      gl.viewport(0,0,W,H);
+      gl.viewport(0, 0, W, H);
       gl.useProgram(pAccum);
       gl.uniform1f(aL.uAspect, aspect);
       gl.enable(gl.BLEND);
@@ -229,33 +323,37 @@ export default function CliffordCanvas() {
       gl.drawArrays(gl.POINTS, 0, N_BATCH);
       gl.disable(gl.BLEND);
 
-      // Display
+      // display
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport(0,0,W,H);
+      gl.viewport(0, 0, W, H);
       gl.useProgram(pDisplay);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, rtA.tex);
       gl.uniform1i(dpL.uTex, 0);
-      gl.uniform1f(dpL.uTime, frame*0.016);
+      gl.uniform1f(dpL.uTime, frame * 0.016);
       drawQuad(dpL.aPos);
     };
 
     rafId = requestAnimationFrame(tick);
 
-    // ── Resize : window uniquement, debounced ────────────────────────────
+    // resize debouncé
     let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         if (!gl || !started) return;
-        W = Math.round(canvas.offsetWidth  * DPR);
-        H = Math.round(canvas.offsetHeight * DPR);
-        if (W < 1 || H < 1) return;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const size = computeSize();
+        if (!size.W || !size.H) return;
+        W = size.W;
+        H = size.H;
         aspect = W / H;
-        canvas.width  = W;
+        canvas.width = W;
         canvas.height = H;
-        gl.deleteTexture(rtA.tex); gl.deleteFramebuffer(rtA.fb);
-        gl.deleteTexture(rtB.tex); gl.deleteFramebuffer(rtB.fb);
+        gl.deleteTexture(rtA.tex);
+        gl.deleteFramebuffer(rtA.fb);
+        gl.deleteTexture(rtB.tex);
+        gl.deleteFramebuffer(rtB.fb);
         rtA = makeRT(gl, W, H);
         rtB = makeRT(gl, W, H);
       }, 150);
@@ -267,13 +365,19 @@ export default function CliffordCanvas() {
       clearTimeout(resizeTimer);
       window.removeEventListener("resize", onResize);
       if (!gl) return;
-      if (rtA) { gl.deleteTexture(rtA.tex); gl.deleteFramebuffer(rtA.fb); }
-      if (rtB) { gl.deleteTexture(rtB.tex); gl.deleteFramebuffer(rtB.fb); }
+      if (rtA) {
+        gl.deleteTexture(rtA.tex);
+        gl.deleteFramebuffer(rtA.fb);
+      }
+      if (rtB) {
+        gl.deleteTexture(rtB.tex);
+        gl.deleteFramebuffer(rtB.fb);
+      }
       if (quadBuf) gl.deleteBuffer(quadBuf);
-      if (posBuf)  gl.deleteBuffer(posBuf);
-      if (pAccum)  gl.deleteProgram(pAccum);
-      if (pDecay)  gl.deleteProgram(pDecay);
-      if (pDisplay)gl.deleteProgram(pDisplay);
+      if (posBuf) gl.deleteBuffer(posBuf);
+      if (pAccum) gl.deleteProgram(pAccum);
+      if (pDecay) gl.deleteProgram(pDecay);
+      if (pDisplay) gl.deleteProgram(pDisplay);
     };
   }, []);
 
@@ -281,13 +385,13 @@ export default function CliffordCanvas() {
     <canvas
       ref={canvasRef}
       style={{
-        position:      "absolute",
-        inset:         0,
-        width:         "100%",
-        height:        "100%",
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
         pointerEvents: "none",
-        zIndex:        0,
-        display:       "block",
+        zIndex: 0,
+        display: "block",
       }}
     />
   );
