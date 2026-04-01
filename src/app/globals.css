@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  scroll-behavior: smooth;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -37,12 +33,12 @@ body {
   }
 
   .dark {
-    /* ─── Fond corrigé : #07080d au lieu du bleu roi #0d1a6e ─── */
-    --background: 220 30% 3%;
+    /* #07080d exact = HSL 230 30% 4% */
+    --background: 230 30% 4%;
     --foreground: 210 40% 98%;
-    --card: 220 30% 3%;
+    --card: 230 30% 4%;
     --card-foreground: 210 40% 98%;
-    --popover: 220 30% 3%;
+    --popover: 230 30% 4%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -70,9 +66,9 @@ body {
     @apply border-border;
   }
 
-  /* Body : fond opaque #07080d — pas de transparence parasite */
-  body {
-    background-color: #07080d;
+  /* Une seule source de vérité pour le fond : #07080d */
+  html, body {
+    background-color: #07080d !important;
     @apply text-foreground;
   }
 }

@@ -41,14 +41,7 @@ export const metadata: Metadata = {
     description: config.description.short,
     url: config.site,
     siteName: config.title,
-    images: [
-      {
-        url: config.ogImg,
-        width: 800,
-        height: 600,
-        alt: "Portfolio preview",
-      },
-    ],
+    images: [{ url: config.ogImg, width: 800, height: 600, alt: "Portfolio preview" }],
     type: "website",
   },
   twitter: {
@@ -57,13 +50,8 @@ export const metadata: Metadata = {
     description: config.description.short,
     images: [config.ogImg],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: config.site,
-  },
+  robots: { index: true, follow: true },
+  alternates: { canonical: config.site },
   publisher: config.author,
   icons: {
     icon: [
@@ -75,11 +63,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -87,11 +71,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <Script
-          defer
-          src={process.env.UMAMI_DOMAIN}
-          data-website-id={process.env.UMAMI_SITE_ID}
-        ></Script>
+        {/* Bloque Dark Reader et toute extension de recoloration automatique */}
+        <meta name="color-scheme" content="dark" />
+        <meta name="darkreader-lock" />
+
+        <Script defer src={process.env.UMAMI_DOMAIN} data-website-id={process.env.UMAMI_SITE_ID} />
         <Script
           id="ld-json-site"
           type="application/ld+json"
@@ -102,14 +86,8 @@ export default function RootLayout({
               name: config.title,
               url: config.site,
               description: config.description.long,
-              author: {
-                "@type": "Person",
-                name: config.author,
-              },
-              publisher: {
-                "@type": "Person",
-                name: config.author,
-              },
+              author: { "@type": "Person", name: config.author },
+              publisher: { "@type": "Person", name: config.author },
             }),
           }}
         />

@@ -31,7 +31,7 @@ export default function MainPage() {
         }}
       />
       <AnimatedBackground />
-      <main>
+      <main style={{ backgroundColor: "#07080d" }}>
         <HeroSection />
         <SkillsSection />
         <ExperienceSection />
