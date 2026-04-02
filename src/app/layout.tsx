@@ -5,29 +5,15 @@ import "./globals.css";
 import { config } from "@/data/config";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-
 import Header from "@/components/header/header";
 import Footer from "@/components/footer/footer";
 import Script from "next/script";
 import AppOverlays from "@/components/app-overlays";
 import { Providers } from "@/components/providers";
 
-const space = localFont({
-  src: "../fonts/space/SpaceNotoriousRounded.otf",
-  variable: "--font-space",
-  weight: "400",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const archivoBlack = Archivo_Black({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display",
-});
+const space = localFont({ src: "../fonts/space/SpaceNotoriousRounded.otf", variable: "--font-space", weight: "400" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const archivoBlack = Archivo_Black({ subsets: ["latin"], weight: "400", variable: "--font-display" });
 
 export const metadata: Metadata = {
   title: config.title,
@@ -37,27 +23,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(config.site),
   applicationName: config.title,
   openGraph: {
-    title: config.title,
-    description: config.description.short,
-    url: config.site,
-    siteName: config.title,
-    images: [{ url: config.ogImg, width: 800, height: 600, alt: "Portfolio preview" }],
-    type: "website",
+    title: config.title, description: config.description.short, url: config.site,
+    siteName: config.title, images: [{ url: config.ogImg, width: 800, height: 600, alt: "Portfolio preview" }], type: "website",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: config.title,
-    description: config.description.short,
-    images: [config.ogImg],
-  },
+  twitter: { card: "summary_large_image", title: config.title, description: config.description.short, images: [config.ogImg] },
   robots: { index: true, follow: true },
   alternates: { canonical: config.site },
   publisher: config.author,
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.png", type: "image/png" },
-    ],
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.png", type: "image/png" }],
     shortcut: "/favicon.svg",
     apple: "/favicon.png",
   },
@@ -71,10 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        {/* Bloque Dark Reader et toute extension de recoloration automatique */}
         <meta name="color-scheme" content="dark" />
-        <meta name="darkreader-lock" />
-
         <Script defer src={process.env.UMAMI_DOMAIN} data-website-id={process.env.UMAMI_SITE_ID} />
         <Script
           id="ld-json-site"
@@ -95,6 +66,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SpeedInsights />
       </head>
       <body>
+        <iframe
+          src="/clifford.html"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100dvh",
+            border: "none",
+            pointerEvents: "none",
+            zIndex: 1,
+            display: "block",
+          }}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
         <Providers>
           <Header />
           {children}

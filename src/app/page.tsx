@@ -31,8 +31,12 @@ export default function MainPage() {
         }}
       />
       <AnimatedBackground />
-      <main style={{ backgroundColor: "#07080d" }}>
-        <HeroSection />
+
+      {/* Hero hors du main */}
+      <HeroSection />
+
+      {/* main démarre après 100dvh — visible seulement au scroll */}
+      <main style={{ marginTop: "100dvh" }}>
         <SkillsSection />
         <ExperienceSection />
         <ProjectsSection />
