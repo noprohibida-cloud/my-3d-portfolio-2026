@@ -14,10 +14,25 @@ import { config } from "@/data/config";
 export default function MainPage() {
   return (
     <SmoothScroll>
-      <Script id="ld-json-home" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: config.title, url: config.site, description: config.description.long, inLanguage: "en", author: { "@type": "Person", name: config.author, url: config.site }, publisher: { "@type": "Person", name: config.author } }) }} />
+      <Script
+        id="ld-json-home"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: config.title,
+            url: config.site,
+            description: config.description.long,
+            inLanguage: "en",
+            author: { "@type": "Person", name: config.author, url: config.site },
+            publisher: { "@type": "Person", name: config.author },
+          }),
+        }}
+      />
       <AnimatedBackground />
-      <main>
-        <HeroSection />
+      <HeroSection />
+      <main style={{ marginTop: "100dvh" }}>
         <SkillsSection />
         <ExperienceSection />
         <ProjectsSection />

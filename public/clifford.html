@@ -11,199 +11,215 @@ canvas { display: block; width: 100%; height: 100%; }
 <body>
 <canvas id="c"></canvas>
 <script>
-const N = 8000;
-const PRESETS = [
-  [-1.7, 1.3, -0.1, -1.21],
-  [-1.4, 1.6,  1.0,  0.7 ],
-  [ 1.5,-1.8,  1.6,  0.9 ],
-  [-1.8, 1.8,  0.4, -1.0 ],
-  [ 1.9,-1.1, -0.9,  1.5 ],
-  [-1.3,-1.3, -1.8, -1.9 ],
-  [ 1.7, 1.7,  0.6, -1.5 ],
-  [-2.0, 1.1,  0.5, -0.9 ],
-];
-
-const VS_ACCUM = `
-precision highp float;
-attribute vec2 aPos;
-uniform float uAspect;
-void main(){
-  vec2 ndc = aPos * 0.42 * vec2(1.0/uAspect, 1.0);
-  gl_Position = vec4(ndc, 0.0, 1.0);
-  gl_PointSize = 1.0;
-}`;
-const FS_ACCUM = `
-precision highp float;
-void main(){ gl_FragColor = vec4(1.0,1.0,1.0,0.012); }`;
-
-const VS_QUAD = `
-attribute vec2 aPos;
-varying vec2 vUv;
-void main(){ vUv = aPos*0.5+0.5; gl_Position=vec4(aPos,0.0,1.0); }`;
-
-const FS_DECAY = `
-precision mediump float;
-uniform sampler2D uTex;
-varying vec2 vUv;
-void main(){
-  vec2 s = 0.5+(vUv-0.5)*0.9998;
-  gl_FragColor = vec4(texture2D(uTex,s).rgb*0.9985, 1.0);
-}`;
-
-const FS_DISPLAY = `
-precision mediump float;
-uniform sampler2D uTex;
-uniform float uTime;
-varying vec2 vUv;
-float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-void main(){
-  float r = texture2D(uTex,vUv).r;
-  vec3 c0=vec3(0.027,0.031,0.051), c1=vec3(0.239,0.290,0.541),
-       c2=vec3(0.545,0.624,0.878), c3=vec3(1.0,1.0,1.0), c4=vec3(0.941,0.769,0.153);
-  vec3 col;
-  if(r<0.04)      col=mix(c0,c1,smoothstep(0.0,1.0,r/0.04));
-  else if(r<0.12) col=mix(c1,c2,smoothstep(0.0,1.0,(r-0.04)/0.08));
-  else if(r<0.35) col=mix(c2,c3,smoothstep(0.0,1.0,(r-0.12)/0.23));
-  else            col=mix(c3,c4,smoothstep(0.0,1.0,clamp((r-0.35)/0.3,0.0,1.0)));
-  col += (hash(vUv+fract(uTime*0.007))-0.5)*0.018*max(r*2.0,0.25);
-  col *= 1.0-dot(vUv-0.5,vUv-0.5)*0.55;
-  gl_FragColor = vec4(clamp(col,0.0,1.0),1.0);
-}`;
-
-function mkShader(gl, type, src){
-  const s = gl.createShader(type);
-  gl.shaderSource(s, src); gl.compileShader(s);
-  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
-  return s;
-}
-function mkProg(gl, vs, fs){
-  const p = gl.createProgram();
-  gl.attachShader(p, mkShader(gl,gl.VERTEX_SHADER,vs));
-  gl.attachShader(p, mkShader(gl,gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(p); return p;
-}
-function mkRT(gl, w, h){
-  const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  const d = new Uint8Array(w*h*4);
-  for(let i=0;i<w*h;i++){d[i*4]=7;d[i*4+1]=8;d[i*4+2]=13;d[i*4+3]=255;}
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,d);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  const fb = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-  return {tex,fb};
-}
+// ─── Lorenz Attractor — WebGL vanilla pur, zéro dépendance ───────────────────
+// Technique éprouvée : même approche que la version clifford.html qui marchait
+// WebGL1, pas d'import map, pas de Three.js
+// Trail animé en 3D avec projection perspective manuelle dans le vertex shader
 
 const canvas = document.getElementById('c');
-const DPR = Math.min(devicePixelRatio,2);
-let W = Math.round(innerWidth*DPR), H = Math.round(innerHeight*DPR);
-let aspect = W/H;
-canvas.width=W; canvas.height=H;
+const gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+if (!gl) { document.body.style.background = '#07080d'; }
 
-const gl = canvas.getContext('webgl',{antialias:false,alpha:false,depth:false,stencil:false});
-if(!gl){ document.body.style.background='red'; throw 'no webgl'; }
+// ── Shaders ───────────────────────────────────────────────────────────────────
+const VS = `
+  precision highp float;
+  attribute vec3 aPos;
+  attribute float aAlpha;
 
-const pAccum   = mkProg(gl, VS_ACCUM,  FS_ACCUM);
-const pDecay   = mkProg(gl, VS_QUAD,   FS_DECAY);
-const pDisplay = mkProg(gl, VS_QUAD,   FS_DISPLAY);
+  uniform mat4 uMVP;
+  uniform float uGlobalAlpha;
 
-const aL  = { aPos:gl.getAttribLocation(pAccum,'aPos'),   uAspect:gl.getUniformLocation(pAccum,'uAspect') };
-const dcL = { aPos:gl.getAttribLocation(pDecay,'aPos'),   uTex:gl.getUniformLocation(pDecay,'uTex') };
-const dpL = { aPos:gl.getAttribLocation(pDisplay,'aPos'), uTex:gl.getUniformLocation(pDisplay,'uTex'), uTime:gl.getUniformLocation(pDisplay,'uTime') };
+  varying float vAlpha;
+  varying float vNdcX;
 
-const qBuf = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
-gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-const drawQuad = loc => {
-  gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-};
-
-const pBuf = gl.createBuffer();
-const pos  = new Float32Array(N*2);
-const st   = {x:0.1,y:0.1};
-
-let rtA = mkRT(gl,W,H), rtB = mkRT(gl,W,H);
-
-let pi=0, ni=1, mt=0, frame=0;
-const MF = 720;
-const ease = t => t<0.5 ? 4*t**3 : 1-(-2*t+2)**3/2;
-
-function getABCD(){
-  const [a0,b0,c0,d0]=PRESETS[pi], [a1,b1,c1,d1]=PRESETS[ni];
-  const e=ease(mt);
-  return [a0+(a1-a0)*e, b0+(b1-b0)*e, c0+(c1-c0)*e, d0+(d1-d0)*e];
-}
-
-function fillBatch(a,b,c,d){
-  let {x,y}=st;
-  for(let i=0;i<N;i++){
-    const nx=Math.sin(a*y)+c*Math.cos(a*x);
-    const ny=Math.sin(b*x)+d*Math.cos(b*y);
-    x=nx;y=ny;pos[i*2]=x;pos[i*2+1]=y;
+  void main() {
+    vec4 clip = uMVP * vec4(aPos, 1.0);
+    gl_Position = clip;
+    vNdcX = clip.x / clip.w;
+    vAlpha = aAlpha * uGlobalAlpha;
   }
-  st.x=x;st.y=y;
+`;
+
+const FS = `
+  precision mediump float;
+  varying float vAlpha;
+  varying float vNdcX;
+
+  void main() {
+    // Masque X : côté gauche s'efface (zone texte)
+    float maskX = smoothstep(-0.7, 0.0, vNdcX);
+    float a = vAlpha * maskX;
+    if (a < 0.005) discard;
+    gl_FragColor = vec4(1.0, 1.0, 1.0, a);
+  }
+`;
+
+function compile(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+const aPos        = gl.getAttribLocation(prog, 'aPos');
+const aAlpha      = gl.getAttribLocation(prog, 'aAlpha');
+const uMVP        = gl.getUniformLocation(prog, 'uMVP');
+const uGlobalAlpha = gl.getUniformLocation(prog, 'uGlobalAlpha');
+
+// ── Lorenz : pré-calcul de toute la trajectoire ───────────────────────────────
+const N     = 15000;
+const TRAIL = 3000;
+const SPEED = 3;
+const DT    = 0.005;
+const S = 10, R = 28, B = 8/3;
+
+const pts = new Float32Array(N * 3);
+let x = 0.1, y = 0, z = 20;
+
+// Warm-up
+for (let i = 0; i < 500; i++) {
+  const dx = S*(y-x), dy = x*(R-z)-y, dz = x*y-B*z;
+  x += dx*DT; y += dy*DT; z += dz*DT;
 }
 
-function tick(){
+// Calculer les bounds pour normaliser
+let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9,minZ=1e9,maxZ=-1e9;
+let tx=x,ty=y,tz=z;
+for (let i=0;i<N;i++) {
+  const dx=S*(ty-tx),dy=tx*(R-tz)-ty,dz=tx*ty-B*tz;
+  tx+=dx*DT;ty+=dy*DT;tz+=dz*DT;
+  if(tx<minX)minX=tx;if(tx>maxX)maxX=tx;
+  if(ty<minY)minY=ty;if(ty>maxY)maxY=ty;
+  if(tz<minZ)minZ=tz;if(tz>maxZ)maxZ=tz;
+}
+const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+const sc = 1.8 / Math.max(maxX-minX, maxY-minY, maxZ-minZ);
+
+for (let i=0;i<N;i++) {
+  const dx=S*(y-x),dy=x*(R-z)-y,dz=x*y-B*z;
+  x+=dx*DT;y+=dy*DT;z+=dz*DT;
+  pts[i*3]  =(x-cx)*sc;
+  pts[i*3+1]=(y-cy)*sc;
+  pts[i*3+2]=(z-cz)*sc;
+}
+
+// ── Buffers GPU ───────────────────────────────────────────────────────────────
+// Buffer interleaved : pos(3) + alpha(1) = 4 floats par point
+const STRIDE = 4 * 4; // 4 floats × 4 bytes
+const bufData = new Float32Array(TRAIL * 4);
+const vbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+gl.bufferData(gl.ARRAY_BUFFER, bufData, gl.DYNAMIC_DRAW);
+
+gl.enableVertexAttribArray(aPos);
+gl.enableVertexAttribArray(aAlpha);
+gl.vertexAttribPointer(aPos,   3, gl.FLOAT, false, STRIDE, 0);
+gl.vertexAttribPointer(aAlpha, 1, gl.FLOAT, false, STRIDE, 12);
+
+// ── Matrices ──────────────────────────────────────────────────────────────────
+function mat4() { return new Float32Array(16); }
+
+function perspective(fov, aspect, near, far) {
+  const m = mat4();
+  const f = 1 / Math.tan(fov * 0.5);
+  m[0]=f/aspect; m[5]=f;
+  m[10]=(far+near)/(near-far); m[11]=-1;
+  m[14]=(2*far*near)/(near-far);
+  return m;
+}
+
+function multiply(a, b) {
+  const m = mat4();
+  for (let i=0;i<4;i++) for (let j=0;j<4;j++) {
+    let s=0;
+    for (let k=0;k<4;k++) s+=a[i+k*4]*b[k+j*4];
+    m[i+j*4]=s;
+  }
+  return m;
+}
+
+function rotY(t) {
+  const m=mat4(); const c=Math.cos(t),s=Math.sin(t);
+  m[0]=c;m[8]=s;m[2]=-s;m[10]=c;m[5]=1;m[15]=1;
+  return m;
+}
+function rotX(t) {
+  const m=mat4(); const c=Math.cos(t),s=Math.sin(t);
+  m[0]=1;m[5]=c;m[6]=s;m[9]=-s;m[10]=c;m[15]=1;
+  return m;
+}
+function translation(tx,ty,tz) {
+  const m=mat4();
+  m[0]=1;m[5]=1;m[10]=1;m[15]=1;
+  m[12]=tx;m[13]=ty;m[14]=tz;
+  return m;
+}
+
+// ── Resize ────────────────────────────────────────────────────────────────────
+let W, H;
+function resize() {
+  const dpr = Math.min(devicePixelRatio, 1.5);
+  W = Math.round(innerWidth * dpr);
+  H = Math.round(innerHeight * dpr);
+  canvas.width = W; canvas.height = H;
+  gl.viewport(0, 0, W, H);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── GL state ──────────────────────────────────────────────────────────────────
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // additif
+gl.clearColor(7/255, 8/255, 13/255, 1);
+
+// ── Boucle ────────────────────────────────────────────────────────────────────
+let head = 0;
+const t0 = performance.now();
+
+function tick() {
   requestAnimationFrame(tick);
-  frame++;
-  mt+=1/MF;
-  if(mt>=1){pi=ni;ni=(ni+1)%PRESETS.length;mt=0;st.x=Math.random()*.4-.2;st.y=Math.random()*.4-.2;}
-  const [a,b,c,d]=getABCD();
+  const t = (performance.now() - t0) * 0.001;
 
-  // Decay
-  gl.bindFramebuffer(gl.FRAMEBUFFER,rtB.fb);
-  gl.viewport(0,0,W,H);
-  gl.useProgram(pDecay);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D,rtA.tex);
-  gl.uniform1i(dcL.uTex,0);
-  drawQuad(dcL.aPos);
-  const tmp=rtA;rtA=rtB;rtB=tmp;
+  // Fade in
+  const globalAlpha = Math.min(1, t / 2.5);
+  gl.uniform1f(uGlobalAlpha, globalAlpha);
 
-  // Inject
-  gl.bindFramebuffer(gl.FRAMEBUFFER,rtA.fb);
-  gl.viewport(0,0,W,H);
-  gl.useProgram(pAccum);
-  gl.uniform1f(aL.uAspect,aspect);
-  gl.enable(gl.BLEND);
-  gl.blendEquation(gl.FUNC_ADD);
-  gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
-  fillBatch(a,b,c,d);
-  gl.bindBuffer(gl.ARRAY_BUFFER,pBuf);
-  gl.bufferData(gl.ARRAY_BUFFER,pos,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(aL.aPos);
-  gl.vertexAttribPointer(aL.aPos,2,gl.FLOAT,false,0,0);
-  gl.drawArrays(gl.POINTS,0,N);
-  gl.disable(gl.BLEND);
+  // Avancer le trail
+  head = (head + SPEED) % N;
 
-  // Display
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-  gl.viewport(0,0,W,H);
-  gl.useProgram(pDisplay);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D,rtA.tex);
-  gl.uniform1i(dpL.uTex,0);
-  gl.uniform1f(dpL.uTime,frame*0.016);
-  drawQuad(dpL.aPos);
+  // Remplir le buffer interleaved
+  for (let i = 0; i < TRAIL; i++) {
+    const idx = (head - i + N) % N;
+    const base = i * 4;
+    bufData[base]   = pts[idx*3];
+    bufData[base+1] = pts[idx*3+1];
+    bufData[base+2] = pts[idx*3+2];
+    // Alpha dégradé expo : tête brillante, queue fondue
+    bufData[base+3] = Math.pow(1 - i/TRAIL, 2.2);
+  }
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, bufData);
+
+  // MVP : perspective × translation × rotY × rotX
+  const aspect = W / H;
+  const proj = perspective(0.9, aspect, 0.1, 100);
+  const view = translation(0, 0, -3.5);
+  const ry   = rotY(t * 0.04);
+  const rx   = rotX(Math.sin(t * 0.025) * 0.15);
+  const mvp  = multiply(proj, multiply(view, multiply(ry, rx)));
+  gl.uniformMatrix4fv(uMVP, false, mvp);
+
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.LINE_STRIP, 0, TRAIL);
 }
-tick();
 
-window.addEventListener('resize',()=>{
-  W=Math.round(innerWidth*DPR);H=Math.round(innerHeight*DPR);
-  aspect=W/H;canvas.width=W;canvas.height=H;
-  gl.deleteTexture(rtA.tex);gl.deleteFramebuffer(rtA.fb);
-  gl.deleteTexture(rtB.tex);gl.deleteFramebuffer(rtB.fb);
-  rtA=mkRT(gl,W,H);rtB=mkRT(gl,W,H);
-});
+tick();
 </script>
 </body>
 </html>
