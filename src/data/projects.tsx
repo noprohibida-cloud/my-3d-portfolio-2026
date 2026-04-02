@@ -14,7 +14,7 @@ export const PROJECTS: SimpleProject[] = [
   {
     name: "PROTOTYPES",
     imageKey: "prototypes",
-    imageSrc: "C:/Users/hugot/Desktop/PORTFOLIO-DEV/public/assets/projects-screenshots/prototypes/header-jaune.png",
+    imageSrc: "imageSrc: "/assets/projects-screenshots/prototypes/header-jaune.png",
     description: "Exposition itinérante imaginée et mise en place en collaboration l'Université de Montpellier et plus d'une trentaire de laboratoires partenaires.",
     gradient: ["#0d0e1f", "#2D3069"],
     url: "/prototypes",
