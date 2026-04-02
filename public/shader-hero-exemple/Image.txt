@@ -1,0 +1,39 @@
+#define WIDTH 1.2
+#define HEIGHT 0.7
+#define SMOOTH 0.004
+#define AMBIENT 0.2
+
+precision highp float;
+
+float roundSquare(vec2 p, vec2 b, float r)
+{
+    return length(max(abs(p)-b,0.0))-r;
+}
+
+// standard roundSquare
+float stdRS(vec2 uv, float r)
+{
+    return roundSquare(uv - 0.5, vec2(WIDTH, HEIGHT) + r, 0.05);
+}
+
+void mainImage(out vec4 c, in vec2 fragCoord)
+{    
+ 
+    c = vec4(0.0, 0.0, 0.0, 0.0);
+    
+    vec2 uvC = fragCoord/iResolution.xy;
+
+    // Ambient
+    //c += max(0.0, AMBIENT - 0.3*distance(uvC, vec2(0.5,0.5))) *
+    //    smoothstep(SMOOTH, -SMOOTH, stdRS(uvC, 0.0));
+
+
+    // Bloom using composed MipMaps
+    c += (textureLod(iChannel0, uvC, 3.) + 
+          textureLod(iChannel0, uvC, 4.) + 
+          textureLod(iChannel0, uvC, 5.))
+        * smoothstep(0., -SMOOTH*20., stdRS(uvC, -0.02)) * 0.5;
+
+    if (uvC.x > 0. && uvC.x < 1. && uvC.y > 0. && uvC.y < 1.)
+    	c += texture(iChannel0, uvC);
+} 

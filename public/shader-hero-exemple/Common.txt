@@ -1,0 +1,10 @@
+#define PHOSPHOR_COL vec4(1, 1., 1., 1.)
+#define BG_COL vec4(0.2, 0.00, 0.2, 0.)
+//#define PHOSPHOR_COL vec4(0.60, 0.06, 0.93, 1.) * 0.4
+//#define BG_COL vec4(0.01, 0.00, 0.01, 0.)
+
+precision highp float;
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}

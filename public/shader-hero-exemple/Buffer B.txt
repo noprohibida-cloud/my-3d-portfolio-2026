@@ -1,0 +1,424 @@
+#define FONT_SIZE vec2(8.,16.)
+#define ROWCOLS vec2(120., 36.)
+//#define FONT_SIZE vec2(10.,20.)
+//#define ROWCOLS vec2(80., 24.)
+
+/* BTW: You can use ANY function as the noise/plasma function
+ * It just needs to return a float in the range 0.0 - 17.0
+ * But shouldn't return 0.0 or 17.0 (they're exclusive bounds).
+ */
+
+// Some Plasma stolen from dogeshibu for testing
+float plasma1(vec2 uv)
+{
+    float color = 0.0;
+    color += 0.7*sin(0.5*uv.x + iTime/5.0);
+    color += 3.0*sin(1.6*uv.y + iTime/5.0);
+    color += 1.0*sin(10.0*(uv.y * sin(iTime/2.0) + uv.x * cos(iTime/5.0)) + iTime/2.0);
+    float cx = uv.x + 0.5*sin(iTime/2.0);
+    float cy = uv.y + 0.5*cos(iTime/4.0);
+    color += 0.4*sin(sqrt(100.0*cx*cx + 100.0*cy*cy + 1.0) + iTime);
+    color += 0.9*sin(sqrt(75.0*cx*cx + 25.0*cy*cy + 1.0) + iTime);
+    color += -1.4*sin(sqrt(256.0*cx*cx + 25.0*cy*cy + 1.0) + iTime);
+    color += 0.3 * sin(0.5*uv.y + uv.x + sin(iTime));
+    return 17.0*(0.5+0.499*sin(color))*(0.7+sin(iTime)*0.3);
+}
+
+
+const vec2 vp = vec2(400.0, 250.0);
+float plasma2(vec2 uv)
+{
+	float t = iTime * 20.0;
+    vec2 p0 = (uv - 0.5) * vp;
+    vec2 hvp = vp * 0.5;
+	vec2 p1d = vec2(cos( t / 98.0),  sin( t / 178.0)) * hvp - p0;
+	vec2 p2d = vec2(sin(-t / 124.0), cos(-t / 104.0)) * hvp - p0;
+	vec2 p3d = vec2(cos(-t / 165.0), cos( t / 45.0))  * hvp - p0;
+    float sum = 0.5 + 0.5 * (
+		cos(length(p1d) / 30.0) +
+		cos(length(p2d) / 20.0) +
+		sin(length(p3d) / 25.0) * sin(p3d.x / 20.0) * sin(p3d.y / 15.0));
+    
+    float val = exp(sum) * 2.0;
+    return val;
+    //fragColor = vec4(fract(sum), fract(sum), fract(sum), 1.0f);
+    //fragColor = texture(iChannel0, vec2(fract(sum), 0));
+}
+
+
+// Smoke Noise
+// Ref: https://www.shadertoy.com/view/MsdGWn
+const int noiseSwirlSteps = 0;
+const float noiseSwirlValue = 1.;
+const float noiseSwirlStepValue = noiseSwirlValue / float(noiseSwirlSteps);
+
+const float noiseScale = 1.0;
+const float noiseTimeScale = 0.1;
+
+
+float simplex(vec3 v);
+float getNoise(vec3 v);
+
+
+//void mainImage( out vec4 fragColor, in vec2 fragCoord )
+//{
+//	vec2 uv = fragCoord.xy / iResolution.xy;
+//	float noise = getNoise(vec3(uv * noiseScale, iTime * noiseTimeScale));
+//    noise = noise * noise * noise * noise * 2.0;  //more contrast
+//    fragColor = vec4(noise, noise, noise, 1.0);
+//}
+
+
+
+float fbm3(vec3 v) {
+    float result = simplex(v);
+    result += simplex(v * 2.) / 2.;
+    result += simplex(v * 4.) / 4.;
+    result /= (1. + 1./2. + 1./4.);
+    return result;
+}
+
+float fbm5(vec3 v) {
+    float result = simplex(v);
+    result += simplex(v * 2.) / 2.;
+    result += simplex(v * 4.) / 4.;
+    result += simplex(v * 8.) / 8.;
+    result += simplex(v * 16.) / 16.;
+    result /= (1. + 1./2. + 1./4. + 1./8. + 1./16.);
+    return result;
+}
+
+float getNoise(vec3 v) {
+    //  make it curl
+    for (int i=0; i<noiseSwirlSteps; i++) {
+    	v.xy += vec2(fbm3(v), fbm3(vec3(v.xy, v.z + 1000.))) * noiseSwirlStepValue;
+    }
+    //  normalize
+    return fbm5(v) / 2. + 0.5;
+}
+
+//
+// Description : Array and textureless GLSL 2D/3D/4D simplex
+//               noise functions.
+//      Author : Ian McEwan, Ashima Arts.
+//  Maintainer : ijm
+//     Lastmod : 20110822 (ijm)
+//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
+//               Distributed under the MIT License. See LICENSE file.
+//               https://github.com/ashima/webgl-noise
+//
+
+vec3 mod289(vec3 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 mod289(vec4 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 permute(vec4 x) {
+     return mod289(((x*34.0)+1.0)*x);
+}
+
+vec4 taylorInvSqrt(vec4 r)
+{
+  return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float simplex(vec3 v)
+  {
+  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+// First corner
+  vec3 i  = floor(v + dot(v, C.yyy) );
+  vec3 x0 =   v - i + dot(i, C.xxx) ;
+
+// Other corners
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min( g.xyz, l.zxy );
+  vec3 i2 = max( g.xyz, l.zxy );
+
+  //   x0 = x0 - 0.0 + 0.0 * C.xxx;
+  //   x1 = x0 - i1  + 1.0 * C.xxx;
+  //   x2 = x0 - i2  + 2.0 * C.xxx;
+  //   x3 = x0 - 1.0 + 3.0 * C.xxx;
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
+
+// Permutations
+  i = mod289(i);
+  vec4 p = permute( permute( permute(
+             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
+           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+// Gradients: 7x7 points over a square, mapped onto an octahedron.
+// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
+  float n_ = 0.142857142857; // 1.0/7.0
+  vec3  ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
+
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+
+  vec4 x = x_ *ns.x + ns.yyyy;
+  vec4 y = y_ *ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4( x.xy, y.xy );
+  vec4 b1 = vec4( x.zw, y.zw );
+
+  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
+  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+  vec3 p0 = vec3(a0.xy,h.x);
+  vec3 p1 = vec3(a0.zw,h.y);
+  vec3 p2 = vec3(a1.xy,h.z);
+  vec3 p3 = vec3(a1.zw,h.w);
+
+//Normalise gradients
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+
+// Mix final noise value
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
+                                dot(p2,x2), dot(p3,x3) ) );
+  }
+
+
+float textLines(vec2 uvG)
+{
+    float wt = 5. * (iTime + 0.5*sin(iTime*1.4) + 0.2*sin(iTime*2.9)); // wobbly time
+    vec2 uvGt = uvG + vec2(0., floor(wt));
+    float ll = rand(vec2(uvGt.y, - 1.)) * ROWCOLS.x; // line length
+    
+    if (uvG.y > ROWCOLS.y - 2.){
+        if (ceil(uvG.x) == floor(min(ll, fract(wt)*ROWCOLS.x)))
+        	return 2.;
+        if (ceil(uvG.x) > floor(min(ll, fract(wt)*ROWCOLS.x)))
+        	return 0.;
+    }
+    if (uvGt.x > 5. && rand(uvGt) < .075)
+        return 0.;
+    if (max(5., uvGt.x) > ll)
+        return 0.;
+       
+    return rand(uvGt)*15. + 2.;
+}
+
+// Font Rendering
+// From shader https://www.shadertoy.com/view/llSXDV
+// Can be done much better in the future...
+#define l(y,a,b) roundLine(p, vec2(float(a), float(y)), vec2(float(b), float(y)))
+float roundLine(vec2 p, vec2 a, vec2 b) 
+{
+	b -= a + vec2(1.0,0.);
+	p -= a;
+    float f = length(p-clamp(dot(p,b)/dot(b,b),0.0,1.0)*b);
+	if (iResolution.y < 320.) // attempt to get rid of aliasing on small resolution
+		return smoothstep(1.0, 0.9, f);    
+    else if (iResolution.y < 720.)
+		return smoothstep(0.75, 0.5, f);    
+	else
+		return smoothstep(1., 0., f);    
+}
+
+float vt220Font(vec2 p, float c)
+{
+    if (c < 1.) return 0.;
+    if(p.y > 16.){
+        if(c > 2.) return 0.0;
+		if(c > 1.) return l(17,1,9);
+    }
+    if(p.y > 14.){
+		if(c > 16.) return l(15,3,8);
+		if(c > 15.) return l(15,1,8);
+		if(c > 14.) return l(15,1,3)+ l(15,7,9);
+		if(c > 13.) return l(15,2,8);
+		if(c > 12.) return l(15,1,9);
+		if(c > 11.) return l(15,2,8);
+		if(c > 10.) return l(15,1,3)+ l(15,6,8);
+		if(c > 9.) return l(15,4,6);
+        if(c > 8.) return l(15,2,4)+ l(15,5,7);
+		if(c > 7.) return l(15,2,8);
+		if(c > 6.) return l(15,2,8);
+		if(c > 5.) return l(15,2,8);
+		if(c > 4.) return l(15,2,9);
+		if(c > 3.) return l(15,1,8);
+		if(c > 2.) return l(15,2,9);
+    }
+    if(p.y > 12.){
+		if(c > 16.) return l(13,2,4)+ l(13,7,9);
+		if(c > 15.) return l(13,2,4)+ l(13,7,9);
+		if(c > 14.) return l(13,1,3)+ l(13,7,9);
+		if(c > 13.) return l(13,1,3)+ l(13,7,9);
+		if(c > 12.) return l(13,1,3);
+		if(c > 11.) return l(13,4,6);
+		if(c > 10.) return l(13,2,4)+ l(13,5,9);
+		if(c > 9.) return l(13,2,8);
+		if(c > 8.) return l(13,2,4)+ l(13,5,7);
+		if(c > 7.) return l(13,1,3)+ l(13,7,9);
+		if(c > 6.) return l(13,1,3)+ l(13,7,9);
+		if(c > 5.) return l(13,1,3)+ l(13,7,9);
+		if(c > 4.) return l(13,1,3)+ l(15,2,9);
+		if(c > 3.) return l(13,1,4)+ l(13,7,9);
+		if(c > 2.) return l(13,1,3)+ l(13,6,9);
+    }
+    if(p.y > 10.){
+		if(c > 16.) return l(11,1,3);
+		if(c > 15.) return l(11,2,4)+ l(11,7,9);
+		if(c > 14.) return l(11,1,9);
+		if(c > 13.) return l(11,7,9);
+		if(c > 12.) return l(11,2,5);
+		if(c > 11.) return l(11,4,6);
+		if(c > 10.) return l(11,3,5)+ l(11,6,8);
+		if(c > 9.) return l(11,4,6)+ l(11,7,9);
+		if(c > 8.) return l(11,1,8);
+		if(c > 7.) return l(11,1,3)+ l(11,7,9);
+		if(c > 6.) return l(11,1,3)+ l(11,7,9);
+		if(c > 5.) return l(11,1,3)+ l(11,7,9);
+		if(c > 4.) return l(11,1,3);
+		if(c > 3.) return l(11,1,3)+ l(11,7,9);
+		if(c > 2.) return l(11,2,9);
+    }
+    if(p.y > 8.){
+		if(c > 16.) return l(9,1,3);
+		if(c > 15.) return l(9,2,8);
+		if(c > 14.) return l(9,1,3)+ l(9,7,9);
+		if(c > 13.) return l(9,4,8);
+		if(c > 12.) return l(9,4,8);
+		if(c > 11.) return l(9,4,6);
+		if(c > 10.) return l(9,4,6);
+		if(c > 9.) return l(9,2,8);
+		if(c > 8.) return l(9,2,4)+ l(9,5,7);
+		if(c > 7.) return l(9,1,3)+ l(9,7,9);
+		if(c > 6.) return l(9,1,3)+ l(9,7,9);
+		if(c > 5.) return l(9,1,3)+ l(9,7,9);
+		if(c > 4.) return l(9,1,3)+ l(9,7,9);
+		if(c > 3.) return l(9,1,4)+ l(9,7,9);
+		if(c > 2.) return l(9,7,9);
+    }
+    if(p.y > 6.){
+		if(c > 16.) return l(7,1,3);
+		if(c > 15.) return l(7,2,4)+ l(7,7,9);
+		if(c > 14.) return l(7,2,4)+ l(7,6,8);
+		if(c > 13.) return l(7,5,7);
+		if(c > 12.) return l(7,7,9);
+		if(c > 11.) return l(7,2,6);
+		if(c > 10.) return l(7,2,4)+ l(7,5,7);
+		if(c > 9.) return l(7,1,3)+ l(7,4,6);
+		if(c > 8.) return l(7,1,8);
+		if(c > 7.) return l(7,2,8);
+		if(c > 6.) return l(7,2,8);
+		if(c > 5.) return l(7,2,8);
+		if(c > 4.) return l(7,2,8);
+		if(c > 3.) return l(7,1,8);
+		if(c > 2.) return l(7,2,8);
+    }
+    if(p.y > 4.){
+		if(c > 16.) return l(5,2,4)+ l(5,7,9);
+		if(c > 15.) return l(5,2,4)+ l(5,7,9);
+		if(c > 14.) return l(5,3,7);
+		if(c > 13.) return l(5,6,8);
+		if(c > 12.) return l(5,1,3)+ l(5,7,9);
+		if(c > 11.) return l(5,3,6);
+		if(c > 10.) return l(5,1,5)+ l(5,6,8);
+		if(c > 9.) return l(5,2,8);
+		if(c > 8.) return l(5,2,4)+ l(5,5,7);
+		if(c > 7.) return 0.;
+		if(c > 6.) return 0.;
+		if(c > 5.) return 0.;
+		if(c > 4.) return 0.;
+		if(c > 3.) return l(5,1,3);
+		if(c > 2.) return 0.;
+    }
+    if(p.y > 2.){
+		if(c > 16.) return l(3,3,8);
+		if(c > 15.) return l(3,1,8);
+		if(c > 14.) return l(3,4,6);
+		if(c > 13.) return l(3,1,9);
+		if(c > 12.) return l(3,2,8);
+		if(c > 11.) return l(3,4,6);
+		if(c > 10.) return l(3,2,4)+ l(3,7,9);
+		if(c > 9.) return l(3,4,6);
+		if(c > 8.) return l(3,2,4)+ l(3,5,7);
+		if(c > 7.) return l(3,2,4)+ l(3,6,8);
+		if(c > 6.) return l(3,1,3)+ l(3,4,7);
+		if(c > 5.) return l(3,2,4)+ l(3,6,8);
+		if(c > 4.) return 0.;
+		if(c > 3.) return l(3,1,3);
+		if(c > 2.) return 0.;
+    }
+    else{
+		if(c > 7.) return 0.;
+		if(c > 6.) return l(1,2,5)+ l(1,6,8);
+    }
+    return 0.0;      
+}
+
+
+float quantise(float val, float n) {
+    val = floor(val * n);
+    if (val < 0.0)
+        return 0.0;
+    else if (val > n)
+        return n;
+    return val / n;
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{   
+    float val = 0.;
+    
+   	vec2 uv = vec2(fragCoord.x, iResolution.y - fragCoord.y);
+   	vec2 uvT = ROWCOLS * FONT_SIZE * uv / iResolution.xy;
+   	vec2 uvG = floor(ROWCOLS * uv / iResolution.xy);
+    
+    
+    vec2 uvNoise = fragCoord.xy / iResolution.xy;
+    //uvNoise *= ROWCOLS; // 80 by 24 characters
+    //uvNoise = ceil(uvNoise);
+    //uvNoise /= ROWCOLS;
+    uvNoise = ceil(uvNoise * ROWCOLS) / ROWCOLS;
+    
+    /* ===== Temporary Testing ===== */
+    if (iTime < 2.0)
+        val = textLines(uvG);
+    else if (iTime < 2.3)
+        val = rand(uvG * iTime) * 17.;
+    else if (iTime < 7.3) {
+        //val = plasma1(uvNoise);
+        float noise = getNoise(vec3(uvNoise * noiseScale, iTime * noiseTimeScale));
+        val = (exp(noise) / 2.71828)*exp(noise);  // increase contrast (normalised 0.0 - 1.0)
+        val = pow(val, 16.0);
+    }
+    else if (iTime < 7.6)
+        val = rand(uvG * iTime) * 17.;
+    else {
+        float noise = getNoise(vec3(uvNoise * noiseScale, iTime * noiseTimeScale));
+        //val = (exp(noise) / 2.71828))*exp(noise);  // increase contrast (normalised 0.0 - 1.0)
+        val = (exp(noise) / 2.71828);  // increase contrast (normalised 0.0 - 1.0)
+        //val = pow(val, 17.0);
+        val = 1.0 / val;
+        val *= 1.0 / (1.0 + exp(-val)) - 0.5; // subtraction value is tunable (range 0.0 - 0.5)
+        val *= quantise(val, 17.0); // quantise by 17 then normalise back to 0.0 - 1.0
+        val = pow(18.0, val) - 1.0;
+    }
+      
+	fragColor = vt220Font(uvT - uvG * FONT_SIZE, val) * PHOSPHOR_COL + BG_COL;
+}
