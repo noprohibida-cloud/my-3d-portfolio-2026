@@ -10,55 +10,53 @@ import { EXPERIENCE } from "@/data/constants";
 export type SkillCategory = "outil" | "technique" | "contexte";
 export type SkillTag = { label: string; category: SkillCategory };
 
-// Couleurs par catégorie — seule différence visuelle entre les lignes
 const CAT_COLOR: Record<SkillCategory, string> = {
   technique: "#ffffff",
   outil:     "#f3d35e",
   contexte:  "#ed954b",
 };
 
-// ─── SkillsRevealBlock ────────────────────────────────────────────────────────
-// Toutes les lignes ont la même taille/poids — seule la couleur change.
-// Animation : chaque ligne se révèle via clipPath gauche→droite au scroll.
-// FIX stabilité : on utilise un gsap.timeline avec ScrollTrigger scrub=false
-// et toggleActions "play reverse play reverse" pour que ça fonctionne
-// dans les deux sens sans reset brutal.
-function SkillsRevealBlock({ skills }: { skills: SkillTag[] }) {
-  const blockRef = useRef<HTMLDivElement>(null);
-  const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
+const CAT_LABEL: Record<SkillCategory, string> = {
+  technique: "Savoir-faire",
+  outil:     "Outils",
+  contexte:  "Contexte",
+};
 
-  const ordered: SkillTag[] = [
-    ...skills.filter(s => s.category === "technique"),
-    ...skills.filter(s => s.category === "outil"),
-    ...skills.filter(s => s.category === "contexte"),
-  ];
+// ─── SkillsRevealBlock — tags compacts inline ─────────────────────────────────
+function SkillsRevealBlock({ skills }: { skills: SkillTag[] }) {
+  const blockRef  = useRef<HTMLDivElement>(null);
+  const groupRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const categories = (["technique", "outil", "contexte"] as SkillCategory[])
+    .filter(cat => skills.some(s => s.category === cat));
+
+  const grouped = categories.map(cat => ({
+    cat,
+    items: skills.filter(s => s.category === cat),
+  }));
 
   useLayoutEffect(() => {
     const block = blockRef.current;
     if (!block) return;
+    const groups = groupRefs.current.filter(Boolean) as HTMLDivElement[];
+    if (!groups.length) return;
 
-    const lines = lineRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (!lines.length) return;
+    gsap.set(groups, { opacity: 0, y: 10 });
 
-    // État initial : toutes les lignes clipées
-    gsap.set(lines, { clipPath: "inset(0 101% 0 0)" });
-
-    // Un seul ScrollTrigger par bloc — timeline avec stagger
-    // toggleActions : play (↓) / reverse (↑) dans les deux directions
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: block,
-        start:         "top 72%",
-        end:           "top 30%",
+        trigger:       block,
+        start:         "top 78%",
         toggleActions: "play none none reverse",
       },
     });
 
-    tl.to(lines, {
-      clipPath: "inset(0 0% 0 0)",
-      duration: 0.7,
-      stagger:  0.07,
-      ease:     "power3.out",
+    tl.to(groups, {
+      opacity:  1,
+      y:        0,
+      duration: 0.5,
+      stagger:  0.08,
+      ease:     "power2.out",
     });
 
     return () => {
@@ -67,105 +65,91 @@ function SkillsRevealBlock({ skills }: { skills: SkillTag[] }) {
         .filter(st => st.vars.trigger === block)
         .forEach(st => st.kill());
     };
-  }, [ordered.length]);
+  }, [grouped.length]);
 
   return (
-    <div ref={blockRef} style={{ width: "100%" }}>
+    <div ref={blockRef} style={{
+      borderTop:     "1px solid rgba(255,255,255,0.07)",
+      paddingTop:    "clamp(16px,2vh,24px)",
+      display:       "flex",
+      flexDirection: "column",
+      gap:           "clamp(10px,1.4vh,16px)",
+    }}>
 
-      {/* En-tête */}
-      <div style={{
-        display:        "flex",
-        justifyContent: "space-between",
-        alignItems:     "baseline",
-        marginBottom:   "clamp(14px,2vh,24px)",
-        paddingBottom:  "clamp(8px,1vh,12px)",
-        borderBottom:   "1px solid rgba(255,255,255,0.10)",
+      {/* Label section */}
+      <span style={{
+        fontFamily:    "monospace",
+        fontSize:      "8px",
+        letterSpacing: "0.22em",
+        textTransform: "uppercase",
+        color:         "rgba(255,255,255,0.15)",
       }}>
-        <span style={{
-          fontFamily:    "monospace",
-          fontSize:      "9px",
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color:         "rgba(255,255,255,0.18)",
-        }}>
-          Compétences mobilisées
-        </span>
-        <div style={{ display: "flex", gap: "14px" }}>
-          {(["technique", "outil", "contexte"] as SkillCategory[])
-            .filter(cat => skills.some(s => s.category === cat))
-            .map(cat => (
-              <span key={cat} style={{
-                display:       "inline-flex",
-                alignItems:    "center",
-                gap:           "5px",
-                fontFamily:    "monospace",
-                fontSize:      "8px",
-                letterSpacing: "0.12em",
-                color:         CAT_COLOR[cat],
-                textTransform: "uppercase",
-                opacity:       0.65,
-              }}>
-                <span style={{ width: 3, height: 3, borderRadius: "50%", background: CAT_COLOR[cat] }} />
-                {cat}
-              </span>
-            ))
-          }
-        </div>
-      </div>
+        Compétences mobilisées
+      </span>
 
-      {/* Lignes */}
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        {ordered.map((skill, i) => (
-          // wrapper overflow:hidden — masque le clip qui dépasse
-          <div key={`${skill.label}-${i}`} style={{ overflow: "hidden" }}>
-            <div
-              ref={el => { lineRefs.current[i] = el; }}
-              style={{
-                display:       "flex",
-                alignItems:    "center",
-                gap:           "clamp(12px,1.4vw,20px)",
-                paddingTop:    "clamp(11px,1.5vh,18px)",
-                paddingBottom: "clamp(11px,1.5vh,18px)",
-                borderBottom:  "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              {/* Index */}
-              <span style={{
-                fontFamily:    "monospace",
-                fontSize:      "9px",
-                letterSpacing: "0.18em",
-                color:         CAT_COLOR[skill.category],
-                opacity:       0.40,
-                flexShrink:    0,
-                lineHeight:    1,
-              }}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
+      {/* Groupes par catégorie */}
+      {grouped.map(({ cat, items }, gi) => (
+        <div
+          key={cat}
+          ref={el => { groupRefs.current[gi] = el; }}
+          style={{
+            display:    "flex",
+            alignItems: "center",
+            gap:        "12px",
+            flexWrap:   "wrap",
+          }}
+        >
+          {/* Label catégorie */}
+          <span style={{
+            fontFamily:    "monospace",
+            fontSize:      "7px",
+            letterSpacing: "0.20em",
+            textTransform: "uppercase",
+            color:         CAT_COLOR[cat] + "44",
+            flexShrink:    0,
+            minWidth:      "70px",
+          }}>
+            {CAT_LABEL[cat]}
+          </span>
 
-              {/* Label — taille et poids identiques pour toutes les catégories */}
-              <span style={{
-                fontFamily:    "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                fontSize:      "clamp(1.25rem, 2.4vw, 2.6rem)",
-                fontWeight:    500,
-                letterSpacing: "-0.02em",
-                color:         CAT_COLOR[skill.category],
-                lineHeight:    1,
-                whiteSpace:    "nowrap",
-              }}>
-                {skill.label}
-              </span>
+          {/* Séparateur */}
+          <div style={{
+            width:      "1px",
+            height:     "12px",
+            background: "rgba(255,255,255,0.08)",
+            flexShrink: 0,
+          }} />
 
-              {/* Ligne de remplissage */}
-              <span style={{
-                flex:       1,
-                height:     "1px",
-                background: `linear-gradient(to right, ${CAT_COLOR[skill.category]}25, transparent)`,
-                flexShrink: 0,
-              }} />
-            </div>
+          {/* Tags inline */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0" }}>
+            {items.map((skill, si) => (
+              <span key={`${skill.label}-${si}`}>
+                <span style={{
+                  fontFamily:    "var(--font-space), sans-serif",
+                  fontSize:      "clamp(11px,0.85vw,13px)",
+                  fontWeight:    500,
+                  letterSpacing: "0.03em",
+                  color:         CAT_COLOR[cat],
+                  opacity:       cat === "technique" ? 0.88 : cat === "outil" ? 0.72 : 0.55,
+                  whiteSpace:    "nowrap",
+                }}>
+                  {skill.label}
+                </span>
+                {si < items.length - 1 && (
+                  <span style={{
+                    margin:     "0 8px",
+                    color:      "rgba(255,255,255,0.10)",
+                    fontSize:   "10px",
+                    fontWeight: 300,
+                  }}>
+                    /
+                  </span>
+                )}
+              </span>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -180,51 +164,35 @@ const SignalIcon = ({ active }: { active: boolean }) => (
 );
 
 // ─── HighlightedText ──────────────────────────────────────────────────────────
-type HighlightSpec = { text: string; color?: string };
+type HighlightSpec  = { text: string; color?: string };
 type HighlightInput = string | HighlightSpec | null | undefined;
 
 function HighlightedText({
   text,
   highlights,
 }: {
-  text: string;
+  text:        string;
   highlights?: HighlightInput[];
 }) {
-  // Normalise et nettoie les highlights
   const normalized: HighlightSpec[] = (highlights ?? [])
     .filter(Boolean)
-    .map((h) =>
-      typeof h === "string"
-        ? { text: h }
-        : { text: h!.text, color: h!.color }
-    )
-    .filter((h) => !!h.text);
+    .map(h => typeof h === "string" ? { text: h } : { text: h!.text, color: h!.color })
+    .filter(h => !!h.text);
 
   if (!normalized.length) return <>{text}</>;
 
-  // construire la regex à partir des .text
-  const esc = normalized
-    .map((h) => h.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("|");
+  const esc   = normalized.map(h => h.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const regex = new RegExp(`(${esc})`, "g");
 
   return (
     <>
       {text.split(regex).map((part, i) => {
-        const spec = normalized.find((h) => h.text === part);
-        if (spec) {
-          return (
-            <span
-              key={i}
-              style={{
-                color: spec.color ?? "rgba(255,255,255,0.92)",
-                fontWeight: 600,
-              }}
-            >
-              {part}
-            </span>
-          );
-        }
+        const spec = normalized.find(h => h.text === part);
+        if (spec) return (
+          <span key={i} style={{ color: spec.color ?? "rgba(255,255,255,0.92)", fontWeight: 600 }}>
+            {part}
+          </span>
+        );
         return <span key={i}>{part}</span>;
       })}
     </>
@@ -244,9 +212,9 @@ const ExperienceSection: React.FC = () => {
     const triggers = entryRefs.current.map((el, i) => {
       if (!el) return null;
       return ScrollTrigger.create({
-        trigger: el,
-        start: "top 55%",
-        end:   "bottom 45%",
+        trigger:     el,
+        start:       "top 55%",
+        end:         "bottom 45%",
         onEnter:     () => setActiveIdx(i),
         onEnterBack: () => setActiveIdx(i),
       });
@@ -270,53 +238,91 @@ const ExperienceSection: React.FC = () => {
           borderBottom:  "1px solid rgba(255,255,255,0.07)",
         }}>
           <h2 style={{
-            fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 700,
-            color: "#fff", letterSpacing: "-0.04em", lineHeight: 1,
-          }}>EXPÉRIENCES</h2>
+            fontSize:      "clamp(2.5rem,6vw,5rem)",
+            fontWeight:    700,
+            color:         "#fff",
+            letterSpacing: "-0.04em",
+            lineHeight:    1,
+          }}>
+            EXPÉRIENCES
+          </h2>
         </div>
 
-        {/* Deux colonnes */}
+        {/* Grille 22% / 1fr */}
         <div style={{
-          display: "grid", gridTemplateColumns: "22% 1fr",
-          gap: "0 5vw", paddingTop: "clamp(60px,8vh,100px)",
+          display:             "grid",
+          gridTemplateColumns: "22% 1fr",
+          gap:                 "0 5vw",
+          paddingTop:          "clamp(60px,8vh,100px)",
         }}>
 
-          {/* Left sticky */}
+          {/* Colonne sticky gauche */}
           <div style={{ position: "relative" }}>
             <div style={{ position: "sticky", top: "30vh", display: "flex", flexDirection: "column" }}>
+
+              {/* Grand numéro actif */}
               <div style={{
-                fontFamily: "monospace", fontSize: "clamp(4rem,8vw,7rem)",
-                fontWeight: 700, color: "#fff", lineHeight: 1, letterSpacing: "-0.06em",
+                fontFamily:    "monospace",
+                fontSize:      "clamp(4rem,8vw,7rem)",
+                fontWeight:    700,
+                color:         "#fff",
+                lineHeight:    1,
+                letterSpacing: "-0.06em",
               }}>
                 {String(activeIdx + 1).padStart(2, "0")}
               </div>
+
+              {/* Timeline nav */}
               <div style={{ position: "relative" }}>
                 <div style={{
-                  position: "absolute", left: "5px", top: "10px", bottom: "10px",
-                  width: "1px", background: "rgba(255,255,255,0.1)",
+                  position:   "absolute",
+                  left:       "5px",
+                  top:        "10px",
+                  bottom:     "10px",
+                  width:      "1px",
+                  background: "rgba(255,255,255,0.1)",
                 }} />
                 {EXPERIENCE.map((exp, i) => (
                   <div key={i} style={{
-                    display: "flex", alignItems: "center", gap: "14px",
-                    padding: "10px 0", position: "relative",
+                    display:    "flex",
+                    alignItems: "center",
+                    gap:        "14px",
+                    padding:    "10px 0",
+                    position:   "relative",
                   }}>
                     <div style={{
-                      width: "11px", height: "11px", borderRadius: "50%",
-                      border: `1px solid ${activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.2)"}`,
-                      background: activeIdx === i ? "#F0C427" : "transparent",
-                      flexShrink: 0, transition: "all 0.35s ease", zIndex: 1,
+                      width:        "11px",
+                      height:       "11px",
+                      borderRadius: "50%",
+                      border:       `1px solid ${activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.2)"}`,
+                      background:   activeIdx === i ? "#F0C427" : "transparent",
+                      flexShrink:   0,
+                      transition:   "all 0.35s ease",
+                      zIndex:       1,
                     }} />
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                       <span style={{
-                        fontFamily: "var(--font-space), sans-serif", fontSize: "10px", letterSpacing: "0.12em",
-                        color: activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.25)",
-                        transition: "color 0.35s ease",
-                      }}>{exp.shortYear}</span>
+                        fontFamily:    "var(--font-space), sans-serif",
+                        fontSize:      "10px",
+                        letterSpacing: "0.12em",
+                        color:         activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.25)",
+                        transition:    "color 0.35s ease",
+                      }}>
+                        {exp.shortYear}
+                      </span>
                       <span style={{
-                        fontSize: "11px", fontFamily:"var(--font-space), sans-serif", lineHeight: 1.2, maxWidth: "110px", whiteSpace: "nowrap",overflow: "hidden",textOverflow: "ellipsis",
-                        color: activeIdx === i ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
-                        transition: "color 0.35s ease",
-                      }}>{exp.company.split("—")[0].trim()}</span>
+                        fontFamily:    "var(--font-space), sans-serif",
+                        fontSize:      "11px",
+                        lineHeight:    1.2,
+                        maxWidth:      "110px",
+                        whiteSpace:    "nowrap",
+                        overflow:      "hidden",
+                        textOverflow:  "ellipsis",
+                        color:         activeIdx === i ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
+                        transition:    "color 0.35s ease",
+                      }}>
+                        {exp.company.split("—")[0].trim()}
+                      </span>
                     </div>
                     <SignalIcon active={activeIdx === i} />
                   </div>
@@ -325,64 +331,97 @@ const ExperienceSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right — entries */}
+          {/* Colonne droite — entrées */}
           <div style={{ display: "flex", flexDirection: "column", paddingBottom: "clamp(80px,12vh,140px)" }}>
             {EXPERIENCE.map((exp, i) => (
               <div
                 key={i}
-                ref={(el) => { entryRefs.current[i] = el; }}
+                ref={el => { entryRefs.current[i] = el; }}
                 style={{
-                  display: "flex", flexDirection: "column",
+                  display:       "flex",
+                  flexDirection: "column",
                   paddingTop:    i === 0 ? 0 : "clamp(80px,10vh,120px)",
                   paddingBottom: "clamp(60px,8vh,100px)",
-                  borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  borderTop:     i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
                 }}
               >
                 {/* Image */}
                 <div style={{ position: "relative", width: "100%", marginBottom: "clamp(28px,4vh,48px)" }}>
                   <div style={{
-                    position: "relative", width: "100%",
-                    height: "clamp(220px,38vh,480px)", overflow: "hidden",
+                    position: "relative",
+                    width:    "100%",
+                    height:   "clamp(220px,38vh,480px)",
+                    overflow: "hidden",
                   }}>
-                    <Image src={exp.image} alt={exp.company} fill
+                    <Image
+                      src={exp.image}
+                      alt={exp.company}
+                      fill
                       sizes="(max-width:1400px) 70vw, 900px"
                       quality={100}
                       style={{ objectFit: "cover", objectPosition: "center 30%" }}
                       priority={i === 0}
                     />
                     <div style={{
-                      position: "absolute", inset: 0,
+                      position:   "absolute",
+                      inset:      0,
                       background: "linear-gradient(to bottom,rgba(5,6,15,.08) 0%,rgba(5,6,15,0) 40%,rgba(5,6,15,.7) 78%,rgba(5,6,15,1) 100%)",
                     }} />
                     <div style={{
-                      position: "absolute", top: "18px", left: "px",
-                      fontFamily: "var(--font-space), sans-serif", fontSize: "20px", letterSpacing: "0.25em",
-                      color: activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.35)",
-                      transition: "color 0.35s ease",
-                    }}>{String(i + 1).padStart(2, "0")} ——</div>
+                      position:      "absolute",
+                      top:           "18px",
+                      left:          "20px",
+                      fontFamily:    "var(--font-space), sans-serif",
+                      fontSize:      "20px",
+                      letterSpacing: "0.25em",
+                      color:         activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.35)",
+                      transition:    "color 0.35s ease",
+                    }}>
+                      {String(i + 1).padStart(2, "0")} ——
+                    </div>
                     <div style={{
-                      position: "absolute", top: "18px", right: "20px",
-                      fontFamily: "var(--font-space), sans-serif", fontSize: "10px", letterSpacing: "0.15em",
-                      color: activeIdx === i ? "rgba(240,196,39,.7)" : "rgba(255,255,255,0.3)",
-                      transition: "color 0.35s ease",
-                    }}>{exp.period}</div>
+                      position:      "absolute",
+                      top:           "18px",
+                      right:         "20px",
+                      fontFamily:    "var(--font-space), sans-serif",
+                      fontSize:      "10px",
+                      letterSpacing: "0.15em",
+                      color:         activeIdx === i ? "rgba(240,196,39,.7)" : "rgba(255,255,255,0.3)",
+                      transition:    "color 0.35s ease",
+                    }}>
+                      {exp.period}
+                    </div>
                   </div>
+
+                  {/* Titre + company sous l'image */}
                   <div style={{
-                    position: "relative",
-                    marginTop: "-clamp(24px,4vh,48px)",
+                    position:   "relative",
+                    marginTop:  "-clamp(24px,4vh,48px)",
                     paddingTop: "clamp(24px,4vh,48px)",
                     background: "linear-gradient(to bottom,transparent,#05060f 35%)",
                   }}>
                     <h3 style={{
-                      fontSize: "clamp(1.15rem,1.8vw,2rem)", fontWeight: 700, color: "#fff",
-                      letterSpacing: "-0.02em", lineHeight: 1.5,
-                      marginBottom: "clamp(10px,1.5vh,16px)",
-                      whiteSpace: "pre-line", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>{exp.title}</h3>
+                      fontSize:      "clamp(1.15rem,1.8vw,2rem)",
+                      fontWeight:    700,
+                      color:         "#fff",
+                      letterSpacing: "-0.02em",
+                      lineHeight:    1.5,
+                      marginBottom:  "clamp(10px,1.5vh,16px)",
+                      whiteSpace:    "pre-line",
+                      overflow:      "hidden",
+                      textOverflow:  "ellipsis",
+                    }}>
+                      {exp.title}
+                    </h3>
                     <div style={{
-                      display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap",
-                      fontFamily: "var(--font-space), sans-serif", fontSize: "15px",
-                      color: "#f3d35e", letterSpacing: "0.1em",
+                      display:       "flex",
+                      alignItems:    "center",
+                      gap:           "8px",
+                      flexWrap:      "wrap",
+                      fontFamily:    "var(--font-space), sans-serif",
+                      fontSize:      "15px",
+                      color:         "#f3d35e",
+                      letterSpacing: "0.1em",
                     }}>
                       <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 500 }}>{exp.company}</span>
                       <span style={{ color: "#ffffff" }}>·</span>
@@ -393,41 +432,43 @@ const ExperienceSection: React.FC = () => {
 
                 {/* Séparateur */}
                 <div style={{
-                  height: "1px", width: "100%",
-                  background: activeIdx === i
+                  height:       "1px",
+                  width:        "100%",
+                  background:   activeIdx === i
                     ? "linear-gradient(to right,#F0C427 0%,rgba(107,117,199,.3) 40%,rgba(255,255,255,.04) 100%)"
                     : "rgba(255,255,255,0.06)",
-                  transition: "background 0.6s ease",
+                  transition:   "background 0.6s ease",
                   marginBottom: "clamp(24px,3.5vh,40px)",
                 }} />
 
-                {/* Description */}
+                {/* Description en deux colonnes */}
                 <div style={{
-                  display: "grid", gridTemplateColumns: "1fr 1fr",
-                  gap: "0 clamp(24px,3vw,48px)",
-                  marginBottom: "clamp(48px,6vh,72px)",
+                  display:             "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap:                 "0 clamp(24px,3vw,48px)",
+                  marginBottom:        "clamp(36px,5vh,56px)",
                 }}>
                   {exp.description.map((para, j) => (
                     <p key={j} style={{
-                      fontFamily: "var(--font-space), sans-serif",
-                        fontSize:         "clamp(13px, 1.1vw, 16px)",
-                        color:            "rgba(255,255,255,0.62)",
-                        lineHeight:       1.95,
-                        textAlign:        "justify",
-                        hyphens:          "auto",
-                        hyphenateCharacter: "'‐'",
-                        overflowWrap:     "break-word",
-                        wordBreak:        "break-word",
-                        letterSpacing:    "0.005em",
-                        fontKerning:      "normal",
-                        fontOpticalSizing: "auto",
+                      fontFamily:         "var(--font-space), sans-serif",
+                      fontSize:           "clamp(13px,1.1vw,16px)",
+                      color:              "rgba(255,255,255,0.62)",
+                      lineHeight:         1.95,
+                      textAlign:          "justify",
+                      hyphens:            "auto",
+                      hyphenateCharacter: "'‐'",
+                      overflowWrap:       "break-word",
+                      wordBreak:          "break-word",
+                      letterSpacing:      "0.005em",
+                      fontKerning:        "normal",
+                      fontOpticalSizing:  "auto",
                     }}>
                       <HighlightedText text={para} highlights={exp.highlights} />
                     </p>
                   ))}
                 </div>
 
-                {/* Révélation typographique */}
+                {/* Compétences */}
                 <SkillsRevealBlock skills={exp.skills as SkillTag[]} />
 
               </div>

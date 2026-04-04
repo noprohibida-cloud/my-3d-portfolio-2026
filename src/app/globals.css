@@ -63,13 +63,13 @@
 @layer base {
   * { @apply border-border; }
 
-  /* ─── Clé de l'effet ───────────────────────────────────────────────────────
-     L'iframe Clifford est z-index:-1.
-     Pour qu'elle soit visible à travers les éléments HTML normaux,
-     html ET body doivent être background:transparent.
-     Le fond #07080d est dans clifford.html lui-même.
-     Les sections #experience et #projects ont background:#05060f inline
-     → elles restent opaques et cachent l'iframe quand on scrolle. ✓
+  /* ─── Stratégie de fond ─────────────────────────────────────────────────────
+     L'iframe vt220.html est position:absolute dans #hero (z-index 0).
+     html + body sont transparents → l'iframe est visible dans le hero.
+     Le <main> est opaque (#05060f) → couvre l'iframe dès le premier scroll.
+     #hero et #skills sont transparents → fenêtre sur le vt220.
+     #experience, #formations, #projects ont leur propre fond opaque inline.
+     #contact est transparent (SectionWrapper sans fond propre).
   ──────────────────────────────────────────────────────────────────────────── */
   html,
   body {
@@ -77,7 +77,12 @@
     @apply text-foreground;
   }
 
-  main,
+  /* main opaque : couvre le vt220 dès qu'on scrolle hors du hero */
+  main {
+    background-color: #05060f !important;
+  }
+
+  /* Ces sections restent transparentes */
   section#hero,
   section#skills,
   section#contact {

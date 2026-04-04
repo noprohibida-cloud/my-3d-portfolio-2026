@@ -46,14 +46,14 @@
     "sharp": "^0.34.5",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "three": "^0.167.1",
+    "three": "^0.183.2",
     "vanilla-tilt": "^1.8.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/three": "^0.167.1",
+    "@types/three": "^0.183.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8",

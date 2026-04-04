@@ -5,6 +5,7 @@ import SmoothScroll from "@/components/smooth-scroll";
 import AnimatedBackground from "@/components/animated-background";
 import SkillsSection from "@/components/sections/skills";
 import ExperienceSection from "@/components/sections/experience";
+import FormationsSection from "@/components/sections/formations";
 import ProjectsSection from "@/components/sections/projects-3d-gallery";
 import ContactSection from "@/components/sections/contact";
 import HeroSection from "@/components/sections/hero";
@@ -32,13 +33,14 @@ export default function MainPage() {
       />
       <AnimatedBackground />
 
-      {/* Hero hors du main */}
+      {/* Hero hors du main — transparent, laisse voir le vt220 */}
       <HeroSection />
 
-      {/* main démarre après 100dvh — visible seulement au scroll */}
+      {/* main opaque #05060f — couvre le vt220 dès le premier scroll */}
       <main style={{ marginTop: "100dvh" }}>
         <SkillsSection />
         <ExperienceSection />
+        <FormationsSection />
         <ProjectsSection />
         <ContactSection />
       </main>
