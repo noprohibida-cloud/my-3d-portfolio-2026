@@ -290,13 +290,6 @@ const ExperienceSection: React.FC = () => {
               }}>
                 {String(activeIdx + 1).padStart(2, "0")}
               </div>
-              <div style={{
-                fontFamily: "monospace", fontSize: "11px",
-                color: "rgba(255,255,255,0.25)", letterSpacing: "0.15em",
-                marginBottom: "clamp(28px,4vh,48px)",
-              }}>
-                — {String(EXPERIENCE.length).padStart(2, "0")}
-              </div>
               <div style={{ position: "relative" }}>
                 <div style={{
                   position: "absolute", left: "5px", top: "10px", bottom: "10px",
@@ -315,12 +308,12 @@ const ExperienceSection: React.FC = () => {
                     }} />
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                       <span style={{
-                        fontFamily: "monospace", fontSize: "10px", letterSpacing: "0.12em",
+                        fontFamily: "var(--font-space), sans-serif", fontSize: "10px", letterSpacing: "0.12em",
                         color: activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.25)",
                         transition: "color 0.35s ease",
                       }}>{exp.shortYear}</span>
                       <span style={{
-                        fontSize: "11px", lineHeight: 1.2, maxWidth: "110px",
+                        fontSize: "11px", fontFamily:"var(--font-space), sans-serif", lineHeight: 1.2, maxWidth: "110px", whiteSpace: "nowrap",overflow: "hidden",textOverflow: "ellipsis",
                         color: activeIdx === i ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
                         transition: "color 0.35s ease",
                       }}>{exp.company.split("—")[0].trim()}</span>
@@ -353,6 +346,7 @@ const ExperienceSection: React.FC = () => {
                   }}>
                     <Image src={exp.image} alt={exp.company} fill
                       sizes="(max-width:1400px) 70vw, 900px"
+                      quality={100}
                       style={{ objectFit: "cover", objectPosition: "center 30%" }}
                       priority={i === 0}
                     />
@@ -361,14 +355,14 @@ const ExperienceSection: React.FC = () => {
                       background: "linear-gradient(to bottom,rgba(5,6,15,.08) 0%,rgba(5,6,15,0) 40%,rgba(5,6,15,.7) 78%,rgba(5,6,15,1) 100%)",
                     }} />
                     <div style={{
-                      position: "absolute", top: "18px", left: "20px",
-                      fontFamily: "monospace", fontSize: "10px", letterSpacing: "0.25em",
+                      position: "absolute", top: "18px", left: "px",
+                      fontFamily: "var(--font-space), sans-serif", fontSize: "20px", letterSpacing: "0.25em",
                       color: activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.35)",
                       transition: "color 0.35s ease",
                     }}>{String(i + 1).padStart(2, "0")} ——</div>
                     <div style={{
                       position: "absolute", top: "18px", right: "20px",
-                      fontFamily: "monospace", fontSize: "10px", letterSpacing: "0.15em",
+                      fontFamily: "var(--font-space), sans-serif", fontSize: "10px", letterSpacing: "0.15em",
                       color: activeIdx === i ? "rgba(240,196,39,.7)" : "rgba(255,255,255,0.3)",
                       transition: "color 0.35s ease",
                     }}>{exp.period}</div>

@@ -20,9 +20,9 @@ const HeroSection = () => {
         isolation: "isolate",
       }}
     >
-      {/* Clifford — absolu dans le hero, z-index 0, derrière le texte z-[2] */}
+      {/* VT220 ASCII shader — plein écran, derrière le texte */}
       <iframe
-        src="/clifford.html"
+        src="/vt220.html"
         style={{
           position: "absolute",
           top: 0,
@@ -38,7 +38,8 @@ const HeroSection = () => {
         tabIndex={-1}
       />
 
-      <div className="grid md:grid-cols-2">
+      {/* Texte — moitié gauche sur desktop, centré en haut sur mobile */}
+      <div className="grid md:grid-cols-2 h-full">
         <div className={cn(
           "h-[calc(100dvh-3rem)] md:h-[calc(100dvh-4rem)] z-[2]",
           "col-span-1",
