@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; background:#05060f; overflow:hidden; }
+canvas { display:block; width:100%; height:100%; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl');
+if(!gl){ document.body.style.background='#05060f'; throw 0; }
+
+const VERT = `attribute vec2 a; void main(){gl_Position=vec4(a,0,1);}`;
+
+const FRAG = `
+precision highp float;
+uniform float iTime;
+uniform vec2  iRes;
+
+#define PI  3.141592654
+#define TAU (2.0*PI)
+#define ROT(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+
+float pmin(float a,float b,float k){
+  float h=clamp(0.5+0.5*(b-a)/k,0.0,1.0);
+  return mix(b,a,h)-k*h*(1.0-h);
+}
+float pmax(float a,float b,float k){ return -pmin(-a,-b,k); }
+float pabs(float a,float k){ return pmax(a,-a,k); }
+vec3 pmin3(vec3 a,vec3 b,vec3 k){
+  vec3 h=clamp(0.5+0.5*(b-a)/k,0.0,1.0);
+  return mix(b,a,h)-k*h*(1.0-h);
+}
+
+void sphere_fold(inout vec3 z, inout float dz){
+  float r2=dot(z,z);
+  if(r2<0.5){ float t=1.9/0.5; z*=t; dz*=t; }
+  else if(r2<1.9){ float t=1.9/r2; z*=t; dz*=t; }
+}
+
+void box_fold(inout vec3 z, inout float dz){
+  vec3 zz = sign(z)*pmin3(abs(z), vec3(1.0), vec3(0.05));
+  z = zz*2.0 - z;
+}
+
+float mbSphere(vec3 p,float t){ return length(p)-t; }
+float mbTorus(vec3 p,vec2 t){ return length(vec2(length(p.xz)-t.x,p.y))-t.y; }
+
+float mb(vec3 z){
+  vec3 off=z; float dr=1.0,fd=0.0;
+  for(int n=0;n<5;n++){
+    box_fold(z,dr);
+    sphere_fold(z,dr);
+    z=-2.8*z+off; dr=dr*2.8+1.0;
+    float r1=mbSphere(z,5.0);
+    float r2=abs(mbTorus(z,vec2(8.0,1.0)))-0.25;
+    float r=n<4?r2:r1;
+    float dd=r/abs(dr);
+    if(n<3||dd<fd) fd=dd;
+  }
+  return fd;
+}
+
+vec2 toPolar(vec2 p){ return vec2(length(p),atan(p.y,p.x)); }
+vec2 toRect(vec2 p) { return vec2(p.x*cos(p.y),p.x*sin(p.y)); }
+
+float modMirror1(inout float p,float size){
+  float hs=size*0.5;
+  float c=floor((p+hs)/size);
+  p=mod(p+hs,size)-hs;
+  p*=mod(c,2.0)*2.0-1.0;
+  return c;
+}
+
+void smoothKaleidoscope(inout vec2 p,float sm,float rep){
+  vec2 hpp=toPolar(p);
+  modMirror1(hpp.y,TAU/rep);
+  float sa=PI/rep - pabs(PI/rep-abs(hpp.y),sm);
+  hpp.y=sign(hpp.y)*sa;
+  p=toRect(hpp);
+}
+
+float df(vec2 p){
+  const float s=0.45;
+  p/=s;
+  float rep=20.0, ss=0.05*6.0/rep;
+  vec3 p3=vec3(p.x,p.y,smoothstep(-0.9,0.9,sin(iTime*0.21)));
+  p3.yz *= ROT(iTime*0.05);
+  p3.xy *= ROT(iTime*0.11);
+  smoothKaleidoscope(p3.xy,ss,rep);
+  return abs(mb(p3)*s);
+}
+
+vec3 aces_approx(vec3 v){
+  v=max(v,0.0)*0.6;
+  return clamp((v*(2.51*v+0.03))/(v*(2.43*v+0.59)+0.14),0.0,1.0);
+}
+
+void main(){
+  vec2 q=gl_FragCoord.xy/iRes;
+  vec2 p=-1.0+2.0*q;
+  vec2 pp=p;
+  p.x*=iRes.x/iRes.y;
+
+  float aa=2.0/iRes.y;
+  float d=df(p);
+
+  // Exposition réduite : fill sombre, glow minimal
+  // bcol0 : blanc très tamisé pour les contours (inte réduit à 0.28)
+  // bcol1 : glow ultra-discret
+  // bcol2 : fond quasi-noir
+  float lum0 = 0.28;   // ← fill principal (était 0.85*0.85 ≈ 0.72)
+  float lum1 = 0.008;  // ← glow (était 0.85*0.025 ≈ 0.021)
+  float lum2 = 0.015;  // ← fond (était 0.85*0.85 ≈ 0.72 × 0.1)
+
+  vec3 bcol0 = vec3(lum0);
+  vec3 bcol1 = vec3(lum1);
+  vec3 bcol2 = vec3(lum2);
+
+  vec3 col = 0.1*bcol2;
+  col += bcol1/sqrt(max(abs(d),0.0001));
+  col += bcol0*smoothstep(aa,-aa,d-0.001);
+
+  // Vignette originale
+  col *= smoothstep(1.5, 0.5, length(pp));
+
+  // Tone map + gamma
+  col = aces_approx(col);
+  col = sqrt(col);
+
+  // Assombrir encore pour le mode fond de section
+  col *= 0.55;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+function mkShader(type,src){
+  const s=gl.createShader(type);
+  gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))
+    console.error('Shader error:',gl.getShaderInfoLog(s));
+  return s;
+}
+
+const prog=gl.createProgram();
+gl.attachShader(prog,mkShader(gl.VERTEX_SHADER,VERT));
+gl.attachShader(prog,mkShader(gl.FRAGMENT_SHADER,FRAG));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+const buf=gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,-1,1,1,-1,1]),gl.STATIC_DRAW);
+const aLoc=gl.getAttribLocation(prog,'a');
+gl.enableVertexAttribArray(aLoc);
+gl.vertexAttribPointer(aLoc,2,gl.FLOAT,false,0,0);
+
+const uTime=gl.getUniformLocation(prog,'iTime');
+const uRes =gl.getUniformLocation(prog,'iRes');
+
+let W=0,H=0;
+function resize(){
+  const dpr=Math.min(devicePixelRatio||1,2);
+  W=Math.floor(canvas.clientWidth*dpr);
+  H=Math.floor(canvas.clientHeight*dpr);
+  canvas.width=W; canvas.height=H;
+  gl.viewport(0,0,W,H);
+}
+resize();
+window.addEventListener('resize',resize);
+
+function loop(t){
+  gl.uniform1f(uTime,t*0.001);
+  gl.uniform2f(uRes,W,H);
+  gl.drawArrays(gl.TRIANGLES,0,6);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

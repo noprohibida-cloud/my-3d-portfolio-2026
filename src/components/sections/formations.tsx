@@ -99,7 +99,7 @@ const FormationsSection: React.FC = () => {
         <div style={{
           paddingTop:    "clamp(80px,12vh,140px)",
           paddingBottom: "clamp(40px,6vh,80px)",
-          borderBottom:  "1px solid rgba(255,255,255,0.07)",
+          borderBottom:  "1px solid rgb(255, 255, 255)",
           overflow:      "hidden",
         }}>
           <h2
@@ -221,9 +221,9 @@ const FormationsSection: React.FC = () => {
                 style={{
                   display:       "flex",
                   flexDirection: "column",
-                  paddingTop:    i === 0 ? 0 : "clamp(64px,8vh,96px)",
-                  paddingBottom: "clamp(48px,6vh,72px)",
-                  borderTop:     i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  paddingTop:    i === 0 ? 0 : "clamp(35px,1vh,100px)",
+                  paddingBottom: "clamp(40px,1vh,100px)",
+                  borderTop:     i === 0 ? "none" : "1px solid rgb(255, 255, 255)",
                   minWidth:      0,
                 }}
               >
@@ -238,16 +238,6 @@ const FormationsSection: React.FC = () => {
                     marginBottom:  "clamp(8px,1vh,12px)",
                   }}>
                     <span style={{
-                      fontFamily:    "monospace",
-                      fontSize:      "15px",
-                      letterSpacing: "0.1em",
-                      color:         "#ffffff",
-                      opacity:       1,
-                      textTransform: "uppercase",
-                    }}>
-                      {f.index}
-                    </span>
-                    <span style={{
                       fontFamily:    "var(--font-space), sans-serif",
                       fontSize:      "15px",
                       letterSpacing: "0.14em",
@@ -258,12 +248,12 @@ const FormationsSection: React.FC = () => {
                     </span>
                     {f.location && (
                       <>
-                        <span style={{ color: "#ffffff", opacity: 0.18, fontSize: "11px" }}>·</span>
+                        <span style={{ color: "#ffffff", opacity: 1, fontSize: "17px" }}>┆ ⋆ ┆</span>
                         <span style={{
                           fontFamily:    "var(--font-space), sans-serif",
                           fontSize:      "15px",
                           letterSpacing: "0.08em",
-                          color:         "#ffffff",
+                          color:         "#F0C427",
                           opacity:       1,
                         }}>
                           {f.location}
@@ -277,9 +267,10 @@ const FormationsSection: React.FC = () => {
                     margin:        0,
                     fontFamily:    "var(--font-space), sans-serif",
                     fontSize:      "clamp(1.3rem,2vw,1.7rem)",
-                    fontWeight:    700,
+                    fontWeight:    650,
                     color:         "#ffffff",
-                    letterSpacing: "-0.03em",
+                    letterSpacing: "-0.01em",
+                    marginLeft:    "-0.035em",
                     lineHeight:    1.08,
                     marginBottom:  "clamp(6px,0.7vh,10px)",
                     whiteSpace:    "nowrap",
@@ -292,11 +283,11 @@ const FormationsSection: React.FC = () => {
                   {/* Mention */}
                   {f.mention && (
                     <div style={{
-                      fontFamily:    "monospace",
-                      fontSize:      "8.5px",
+                      fontFamily:    "var(--font-space), sans-serif",
+                      fontSize:      "10.5px",
                       letterSpacing: "0.16em",
                       color:         "#ffffff",
-                      opacity:       0.32,
+                      opacity:       1,
                       textTransform: "uppercase",
                       marginBottom:  "clamp(6px,0.7vh,10px)",
                     }}>
@@ -351,38 +342,13 @@ const FormationsSection: React.FC = () => {
                         letterSpacing:      "0.005em",
                         fontKerning:        "normal",
                         fontOpticalSizing:  "auto",
+                        whiteSpace: "pre-line",
                       }}>
                         {para}
                       </p>
                     ))}
                   </div>
                 )}
-
-                {/* Badge annotation */}
-                {f.annotation && (
-                  <div style={{
-                    display:      "inline-flex",
-                    alignItems:   "center",
-                    padding:      "3px 8px",
-                    border:       "1px solid rgba(255,255,255,0.10)",
-                    borderRadius: "2px",
-                    marginBottom: f.publication ? "clamp(10px,1.2vh,16px)" : 0,
-                    marginTop:    f.description?.length ? "clamp(16px,2vh,24px)" : 0,
-                    alignSelf:    "flex-start",
-                  }}>
-                    <span style={{
-                      fontFamily:    "monospace",
-                      fontSize:      "7px",
-                      letterSpacing: "0.24em",
-                      color:         "#ffffff",
-                      opacity:       0.30,
-                      textTransform: "uppercase",
-                    }}>
-                      {f.annotation}
-                    </span>
-                  </div>
-                )}
-
                 {/* Lien publication DUMAS */}
                 {f.publication && (
                   <a
@@ -413,21 +379,20 @@ const FormationsSection: React.FC = () => {
                   >
                     <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                       <span style={{
-                        fontFamily:    "monospace",
-                        fontSize:      "7.5px",
-                        letterSpacing: "0.26em",
+                        fontFamily:    "var(--font-space), sans-serif",
+                        fontSize:      "15px",
+                        fontWeight:    650,
                         color:         YELLOW,
-                        opacity:       0.7,
+                        opacity:       1,
                         textTransform: "uppercase",
                       }}>
                         {f.publication.label}
                       </span>
                       <span style={{
                         fontFamily:    "var(--font-space), sans-serif",
-                        fontSize:      "13px",
+                        fontSize:      "15px",
                         color:         "#ffffff",
-                        opacity:       0.52,
-                        letterSpacing: "0.02em",
+                        opacity:       1,
                       }}>
                         {f.publication.title}
                       </span>

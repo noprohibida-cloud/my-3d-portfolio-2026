@@ -14,6 +14,7 @@ import { Providers } from "@/components/providers";
 const space = localFont({ src: "../fonts/space/SpaceNotoriousRounded.otf", variable: "--font-space", weight: "400" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivoBlack = Archivo_Black({ subsets: ["latin"], weight: "400", variable: "--font-display" });
+const cat = localFont({ src: "../fonts/cat/cat.ttf", variable: "--font-cat", weight: "400" });
 
 export const metadata: Metadata = {
   title: config.title,
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={[inter.variable, archivoBlack.variable, space.variable, "font-display"].join(" ")}
+      className={[inter.variable, archivoBlack.variable, space.variable, cat.variable, "font-display"].join(" ")}
       suppressHydrationWarning
     >
       <head>

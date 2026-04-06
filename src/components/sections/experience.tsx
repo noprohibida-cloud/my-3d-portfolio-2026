@@ -11,7 +11,7 @@ export type SkillCategory = "outil" | "technique" | "contexte";
 export type SkillTag = { label: string; category: SkillCategory };
 
 // Séparateurs non uniformes
-const SEPS = ["—", "·", "—", "—", "·", "—", "·", "—", "·", "—"];
+const SEPS = ["┆ ⋆ ┆"];
 
 // ─── SkillsRevealBlock ────────────────────────────────────────────────────────
 // Une ligne compacte. Reveal opacity+y au scroll. textOverflow ellipsis.
@@ -228,9 +228,9 @@ const ExperienceSection: React.FC = () => {
                 style={{
                   display:       "flex",
                   flexDirection: "column",
-                  paddingTop:    i === 0 ? 0 : "clamp(48px,6vh,80px)",
+                  paddingTop:    i === 0 ? 0 : "clamp(25px,1vh,40px)",
                   paddingBottom: "clamp(10px,1vh,40px)",
-                  borderTop:     i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  borderTop:     i === 0 ? "none" : "1px solid rgb(255, 255, 255)",
                   minWidth:      0,
                 }}
               >
@@ -248,7 +248,7 @@ const ExperienceSection: React.FC = () => {
                       fill
                       sizes="(max-width:1400px) 70vw, 900px"
                       quality={100}
-                      style={{ objectFit: "cover", objectPosition: "center 30%" }}
+                      style={{ objectFit: "cover", objectPosition: "center 27%" }}
                       priority={i === 0}
                     />
                     <div style={{
@@ -265,13 +265,13 @@ const ExperienceSection: React.FC = () => {
                       letterSpacing: "0.25em",
                       color:         activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.35)",
                       transition:    "color 0.35s ease",
-                    }}>{String(i + 1).padStart(2, "0")} ——</div>
+                    }}>{String(i + 1).padStart(2, "0")} ⋆⋆</div>
                     <div style={{
                       position:      "absolute",
                       top:           "10px",
                       right:         "10px",
                       fontFamily:    "var(--font-space), sans-serif",
-                      fontSize:      "10px",
+                      fontSize:      "15px",
                       letterSpacing: "0.15em",
                       color:         activeIdx === i ? "rgba(240,196,39,.7)" : "rgba(255,255,255,0.3)",
                       transition:    "color 0.35s ease",

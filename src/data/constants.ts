@@ -5,7 +5,7 @@ export const EXPERIENCE = [
     id: 1,
     period: "2022 — 2023",
     shortYear: "2022 — 2023",
-    title: "GRAPHISTE ▓▓▓▓▓▓ SCÉNOGRAPHE",
+    title: "GRAPHISTE ⋆ SCÉNOGRAPHE",
     company: "Université de Montpellier — DCSPH",
     location: "Montpellier",
     image: "/assets/experience/prototypes.png",
@@ -25,7 +25,6 @@ export const EXPERIENCE = [
       { label: "GRAPHISME",                  category: "technique" },
       { label: "MÉDIATION SCIENTIFIQUE",     category: "technique" },
       { label: "PATRIMONIALISATION",         category: "outil" },
-      { label: "RECHERCHE DOCUMENTAIRE",     category: "outil" },
       { label: "RECHERCHE SCIENTIFIQUE",     category: "contexte" },
     ],
   },
@@ -33,7 +32,7 @@ export const EXPERIENCE = [
     id: 2,
     period: "2024 — 2025",
     shortYear: "2024 — 2025",
-    title: "GRAPHISTE ▓▓▓▓▓▓ MONTEUR",
+    title: "GRAPHISTE ⋆ MONTEUR",
     company: "Jamais Assez Toujours Trop",
     location: "Montpellier",
     image: "/assets/experience/jatt.jpg",
@@ -59,9 +58,9 @@ export const EXPERIENCE = [
   },
   {
     id: 3,
-    period: "Juin — Août 2025",
+    period: "2025",
     shortYear: "2025",
-    title: "GRAPHISTE 3D ▓▓▓▓▓▓ SCÉNOGRAPHE \n DESIGNER TEXTILE",
+    title: "GRAPHISTE 3D ⋆ SCÉNOGRAPHE \nDESIGNER TEXTILE",
     company: "Orbe",
     location: "Paris",
     image: "/assets/experience/orbe.jpg",
@@ -104,57 +103,38 @@ export const FORMATIONS = [
   {
     id: 1,
     index: "01",
-    period: "2019 — 2022",
-    shortPeriod: "2019—2022",
-    status: "terminé" as const,
-    institution: "Université Paul Valéry — Montpellier 3",
+    period: "2017 – 2020",
+    shortPeriod: "2017–2020",
+    institution: "Université Paul Valéry – Montpellier 3",
     location: "Montpellier",
     degree: "LICENCE LETTRES MODERNES",
-    mention: "PARCOURS — MÉTIERS DU LIVRE ET DE L'ÉCRIT",
+    mention: "PARCOURS MÉTIERS DE L'ÉCRIT ET DE LA CULTURE",
     description: [
-      "Formation en lettres modernes qui a nourri une sensibilité aux langages, à la narration et à la construction du sens — des outils qui traversent encore aujourd'hui ma pratique du design et des dispositifs interactifs.",
-      "Cette période a également été l'occasion de développer une méthodologie de recherche rigoureuse, dont le mémoire de fin de licence témoigne.",
+      "Formation initiale en lettres modernes, à l'université publique, qui a cultivé ma sensibilité au langage, aux récits et à la narration, et aux commentaires d'œuvres d'art. \n\nUne partie de nos enseignements professionnalisants portait sur les métiers du livre et de la culture.",
+      "Cette période a également été l'occasion pour moi d'acquérir une méthodologie de recherche rigoureuse, ainsi qu'un cadre analytique et épistémologique qui ne me quitte plus."
     ],
-    publication: {
-      label: "Mémoire de licence — DUMAS",
-      url:   "https://dumas.ccsd.cnrs.fr/",
-      title: "Titre du mémoire à compléter",
-    },
   },
 
   // ── 02 · Master Lettres ───────────────────────────────────────────────────
   {
     id: 2,
     index: "02",
-    period: "2022 — 2023",
-    shortPeriod: "2022—2023",
-    status: "terminé" as const,
-    institution: "Université Paul Valéry — Montpellier 3",
+    period: "2020 – 2022",
+    shortPeriod: "2020–2022",
+    institution: "Université Paul Valéry – Montpellier 3",
     location: "Montpellier",
     degree: "MASTER LETTRES",
-    mention: "LANGUE, LITTÉRATURE & CIVILISATION",
+    mention: "PARCOURS LITTÉRATURE GÉNÉRALE ET COMPARÉE",
     description: [
-      "Poursuite en master de la formation en lettres modernes, avec un approfondissement des outils d'analyse littéraire, de théorie du texte et de recherche académique.",
-      "Le mémoire de master, déposé sur DUMAS, constitue l'aboutissement de cette période de formation théorique avant la bifurcation vers le design numérique.",
+      "Poursuite en master de ma formation en lettres modernes, dans le cadre duquel j'ai pu approfondir les outils recueillis en licence au travers des enseignements pluraux que j'ai pu suivre. \n\nCe premier diplôme de master a été l'occasion pour moi d'établir un premier contact avec les différents agents de la recherche académique et universitaire.",
+      
+      "Le succès de mon mémoire de première année, sur deux auteurs décadents et mystiques de la Belle Époque, aurait dû me conduire à une carrière en recherche littéraire. \n\nJ'en ai décidé autrement.",
     ],
     publication: {
-      label: "Mémoire de master — DUMAS",
-      url:   "https://dumas.ccsd.cnrs.fr/",
-      title: "Titre du mémoire à compléter",
+      label: "MÉMOIRE DE MASTER PUBLIÉ SUR DUMAS",
+      url:   "https://dumas.ccsd.cnrs.fr/dumas-03379646",
+      title: "La fabrique du corps chez Rachilde et Jean Lorrain [1884-1901]",
     },
-  },
-
-  // ── Pont ──────────────────────────────────────────────────────────────────
-  {
-    id: 3,
-    index: "——",
-    period: "",
-    shortPeriod: "",
-    status: "pont" as const,
-    institution: "",
-    location: "",
-    degree: "",
-    annotation: "Bifurcation vers le design numérique",
   },
 
   // ── 03 · DN MADE ──────────────────────────────────────────────────────────
@@ -163,45 +143,29 @@ export const FORMATIONS = [
     index: "03",
     period: "2023 — 2024",
     shortPeriod: "2023—2024",
-    status: "terminé" as const,
     institution: "Montpellier",
     location: "Montpellier",
-    degree: "DN MADE",
-    mention: "MENTION NUMÉRIQUE",
+    degree: "DNMADE",
+    mention: "PARCOUS PARCOURS NARRATIONS, MOTION DESIGN ET DESIGN D'INTERACTION",
     description: [
-      "Année de DN MADE pour formaliser les bases du design graphique, de la typographie et de la culture numérique. Une mise à niveau choisie, non contrainte : ayant largement atteint le niveau requis, j'ai pu candidater directement en Master Création Numérique à l'Université Paul Valéry.",
-      "Ce passage a posé le socle technique qui manquait à ma formation théorique en lettres — une complémentarité que j'assume pleinement comme trajectoire singulière.",
+      "Après une introduction pratique aux outils du design graphique et d'interaction dans la cadre de mon contrat avec l'Université de Montpellier, j'ai voulu formaliser mes compétences au moyen d'un diplôme professionnalisant. \n\nJ'ai été reçu en première année de DN MADe NUMÉRIQUE, au lycée Jean Monnet, à Montpellier.",
+      "La formation étant en deçà de mes attentes, j'ai décidé de candidater au Master Création Numérique de l'Université Paul Valéry dans l'objectif de suivre des enseignements plus approfondis et techniques.",
     ],
-    annotation: "MISE À NIVEAU — TREMPLIN VERS LE MASTER",
   },
 
-  // ── Pont ──────────────────────────────────────────────────────────────────
-  {
-    id: 5,
-    index: "——",
-    period: "",
-    shortPeriod: "",
-    status: "pont" as const,
-    institution: "",
-    location: "",
-    degree: "",
-    annotation: "Admission directe en Master Création Numérique",
-  },
-
-  // ── 04 · Master Création Numérique (M1 + M2) ──────────────────────────────
+  // ── 04 · Master Création Numérique ──────────────────────────────
   {
     id: 6,
     index: "04",
     period: "2024 — 2026",
     shortPeriod: "2024—2026",
-    status: "terminé" as const,   // "terminé" = pas d'affichage badge dans le composant
     institution: "Université Paul Valéry — Montpellier 3",
     location: "Montpellier",
     degree: "MASTER CRÉATION NUMÉRIQUE",
     mention: "IMAGES ANIMÉES & TECHNOLOGIES INTERACTIVES",
     description: [
-      "Master au sein du département Arts, Pratiques et Poétiques. Travail approfondi sur les installations interactives, la 3D temps réel et les outils de création générative — TouchDesigner, Blender, Unity, After Effects.",
-      "La seconde année est articulée autour d'un contrat d'alternance 2025–2026, avec poursuite des recherches autour des dispositifs immersifs, de la réalité mixte et du design d'interaction.",
+      "Première année enrichissante de Master en création numérique qui m'a permis d'approfondir davantage mes connaissances et ma pratique des logiciels de modélisation et d'animation 3D, de rendu temps réel et de programmation. \n\nJ'ai pu développer un goût pour la co-gestion de projets et la direction artistique.",
+      "Ma seconde année dans ce master a orienté ma pratique personnelle vers le design d'interaction en temps réel, le développement d'outils et d'interfaces immersives et la création d'images génératives et procédurales appliquées au live coding et au VJing.",
     ],
   },
 
