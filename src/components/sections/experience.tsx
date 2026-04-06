@@ -10,190 +10,83 @@ import { EXPERIENCE } from "@/data/constants";
 export type SkillCategory = "outil" | "technique" | "contexte";
 export type SkillTag = { label: string; category: SkillCategory };
 
-const CAT_COLOR: Record<SkillCategory, string> = {
-  technique: "#ffffff",
-  outil:     "#f3d35e",
-  contexte:  "#ed954b",
-};
+// Séparateurs non uniformes
+const SEPS = ["—", "·", "—", "—", "·", "—", "·", "—", "·", "—"];
 
-const CAT_LABEL: Record<SkillCategory, string> = {
-  technique: "Savoir-faire",
-  outil:     "Outils",
-  contexte:  "Contexte",
-};
-
-// ─── SkillsRevealBlock — tags compacts inline ─────────────────────────────────
+// ─── SkillsRevealBlock ────────────────────────────────────────────────────────
+// Une ligne compacte. Reveal opacity+y au scroll. textOverflow ellipsis.
 function SkillsRevealBlock({ skills }: { skills: SkillTag[] }) {
-  const blockRef  = useRef<HTMLDivElement>(null);
-  const groupRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const categories = (["technique", "outil", "contexte"] as SkillCategory[])
-    .filter(cat => skills.some(s => s.category === cat));
-
-  const grouped = categories.map(cat => ({
-    cat,
-    items: skills.filter(s => s.category === cat),
-  }));
+  const ref = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    const block = blockRef.current;
-    if (!block) return;
-    const groups = groupRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (!groups.length) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const el = ref.current;
+    if (!el) return;
 
-    gsap.set(groups, { opacity: 0, y: 10 });
+    gsap.set(el, { opacity: 0, y: 5 });
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger:       block,
-        start:         "top 78%",
-        toggleActions: "play none none reverse",
-      },
+    const st = ScrollTrigger.create({
+      trigger:     el,
+      start:       "top 88%",
+      onEnter:     () => gsap.to(el, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }),
+      onLeaveBack: () => gsap.to(el, { opacity: 0, y: 5, duration: 0.25, ease: "power2.in" }),
     });
 
-    tl.to(groups, {
-      opacity:  1,
-      y:        0,
-      duration: 0.5,
-      stagger:  0.08,
-      ease:     "power2.out",
-    });
+    return () => st.kill();
+  }, []);
 
-    return () => {
-      tl.kill();
-      ScrollTrigger.getAll()
-        .filter(st => st.vars.trigger === block)
-        .forEach(st => st.kill());
-    };
-  }, [grouped.length]);
+  const text = skills.map((s, i) =>
+    i < skills.length - 1 ? `${s.label}${"\u2002"}${SEPS[i % SEPS.length]}\u2002` : s.label
+  ).join("");
 
   return (
-    <div ref={blockRef} style={{
-      borderTop:     "1px solid rgba(255,255,255,0.07)",
-      paddingTop:    "clamp(16px,2vh,24px)",
-      display:       "flex",
-      flexDirection: "column",
-      gap:           "clamp(10px,1.4vh,16px)",
-    }}>
-
-      {/* Label section */}
-      <span style={{
-        fontFamily:    "monospace",
-        fontSize:      "8px",
-        letterSpacing: "0.22em",
-        textTransform: "uppercase",
-        color:         "rgba(255,255,255,0.15)",
+    <div
+      ref={ref}
+      style={{
+        borderTop:  "1px solid rgb(255, 255, 255)",
+        paddingTop: "clamp(10px, 1.2vh, 4px)",
+        width:      "100%",
+        minWidth:   0,
+      }}
+    >
+      <p style={{
+        fontFamily:    "var(--font-hibana), sans-serof",
+        fontSize:      "clamp(9.5px, 0.82vw, 11px)",
+        color:         "rgb(255, 255, 255)",
+        lineHeight:    1,
+        margin:        0,
+        whiteSpace:    "nowrap",
+        overflow:      "hidden",
+        textOverflow:  "ellipsis",
       }}>
-        Compétences mobilisées
-      </span>
-
-      {/* Groupes par catégorie */}
-      {grouped.map(({ cat, items }, gi) => (
-        <div
-          key={cat}
-          ref={el => { groupRefs.current[gi] = el; }}
-          style={{
-            display:    "flex",
-            alignItems: "center",
-            gap:        "12px",
-            flexWrap:   "wrap",
-          }}
-        >
-          {/* Label catégorie */}
-          <span style={{
-            fontFamily:    "monospace",
-            fontSize:      "7px",
-            letterSpacing: "0.20em",
-            textTransform: "uppercase",
-            color:         CAT_COLOR[cat] + "44",
-            flexShrink:    0,
-            minWidth:      "70px",
-          }}>
-            {CAT_LABEL[cat]}
-          </span>
-
-          {/* Séparateur */}
-          <div style={{
-            width:      "1px",
-            height:     "12px",
-            background: "rgba(255,255,255,0.08)",
-            flexShrink: 0,
-          }} />
-
-          {/* Tags inline */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0" }}>
-            {items.map((skill, si) => (
-              <span key={`${skill.label}-${si}`}>
-                <span style={{
-                  fontFamily:    "var(--font-space), sans-serif",
-                  fontSize:      "clamp(11px,0.85vw,13px)",
-                  fontWeight:    500,
-                  letterSpacing: "0.03em",
-                  color:         CAT_COLOR[cat],
-                  opacity:       cat === "technique" ? 0.88 : cat === "outil" ? 0.72 : 0.55,
-                  whiteSpace:    "nowrap",
-                }}>
-                  {skill.label}
-                </span>
-                {si < items.length - 1 && (
-                  <span style={{
-                    margin:     "0 8px",
-                    color:      "rgba(255,255,255,0.10)",
-                    fontSize:   "10px",
-                    fontWeight: 300,
-                  }}>
-                    /
-                  </span>
-                )}
-              </span>
-            ))}
-          </div>
-        </div>
-      ))}
+        {text}
+      </p>
     </div>
   );
 }
-
-// ─── SignalIcon ───────────────────────────────────────────────────────────────
-const SignalIcon = ({ active }: { active: boolean }) => (
-  <svg width="36" height="14" viewBox="0 0 36 14" fill="none"
-    style={{ opacity: active ? 1 : 0, transition: "opacity 0.4s ease", flexShrink: 0 }}>
-    <polyline points="0,7 4,7 6,1 8,13 10,7 16,7 18,2 20,12 22,7 28,7 32,4 36,7"
-      stroke="#F0C427" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
-  </svg>
-);
 
 // ─── HighlightedText ──────────────────────────────────────────────────────────
 type HighlightSpec  = { text: string; color?: string };
 type HighlightInput = string | HighlightSpec | null | undefined;
 
-function HighlightedText({
-  text,
-  highlights,
-}: {
-  text:        string;
-  highlights?: HighlightInput[];
-}) {
+function HighlightedText({ text, highlights }: { text: string; highlights?: HighlightInput[] }) {
   const normalized: HighlightSpec[] = (highlights ?? [])
     .filter(Boolean)
-    .map(h => typeof h === "string" ? { text: h } : { text: h!.text, color: h!.color })
-    .filter(h => !!h.text);
+    .map((h) => typeof h === "string" ? { text: h } : { text: h!.text, color: h!.color })
+    .filter((h) => !!h.text);
 
   if (!normalized.length) return <>{text}</>;
 
-  const esc   = normalized.map(h => h.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const esc   = normalized.map((h) => h.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const regex = new RegExp(`(${esc})`, "g");
 
   return (
     <>
       {text.split(regex).map((part, i) => {
-        const spec = normalized.find(h => h.text === part);
-        if (spec) return (
-          <span key={i} style={{ color: spec.color ?? "rgba(255,255,255,0.92)", fontWeight: 600 }}>
-            {part}
-          </span>
-        );
-        return <span key={i}>{part}</span>;
+        const spec = normalized.find((h) => h.text === part);
+        return spec
+          ? <span key={i} style={{ color: spec.color ?? "rgba(255,255,255,0.92)", fontWeight: 600 }}>{part}</span>
+          : <span key={i}>{part}</span>;
       })}
     </>
   );
@@ -220,7 +113,7 @@ const ExperienceSection: React.FC = () => {
       });
     });
 
-    return () => triggers.forEach(t => t?.kill());
+    return () => triggers.forEach((t) => t?.kill());
   }, []);
 
   return (
@@ -233,9 +126,9 @@ const ExperienceSection: React.FC = () => {
 
         {/* Header */}
         <div style={{
-          paddingTop:    "clamp(80px,12vh,140px)",
-          paddingBottom: "clamp(40px,6vh,80px)",
-          borderBottom:  "1px solid rgba(255,255,255,0.07)",
+          paddingTop:    "clamp(60px,8vh,100px)",
+          paddingBottom: "clamp(28px,4vh,48px)",
+          borderBottom:  "1px solid rgb(255, 255, 255)",
         }}>
           <h2 style={{
             fontSize:      "clamp(2.5rem,6vw,5rem)",
@@ -243,24 +136,21 @@ const ExperienceSection: React.FC = () => {
             color:         "#fff",
             letterSpacing: "-0.04em",
             lineHeight:    1,
-          }}>
-            EXPÉRIENCES
-          </h2>
+            margin:        0,
+          }}>EXPÉRIENCES</h2>
         </div>
 
-        {/* Grille 22% / 1fr */}
+        {/* Deux colonnes */}
         <div style={{
           display:             "grid",
           gridTemplateColumns: "22% 1fr",
           gap:                 "0 5vw",
-          paddingTop:          "clamp(60px,8vh,100px)",
+          paddingTop:          "clamp(40px,5vh,72px)",
         }}>
 
-          {/* Colonne sticky gauche */}
+          {/* Left sticky */}
           <div style={{ position: "relative" }}>
             <div style={{ position: "sticky", top: "30vh", display: "flex", flexDirection: "column" }}>
-
-              {/* Grand numéro actif */}
               <div style={{
                 fontFamily:    "monospace",
                 fontSize:      "clamp(4rem,8vw,7rem)",
@@ -271,8 +161,6 @@ const ExperienceSection: React.FC = () => {
               }}>
                 {String(activeIdx + 1).padStart(2, "0")}
               </div>
-
-              {/* Timeline nav */}
               <div style={{ position: "relative" }}>
                 <div style={{
                   position:   "absolute",
@@ -307,50 +195,51 @@ const ExperienceSection: React.FC = () => {
                         letterSpacing: "0.12em",
                         color:         activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.25)",
                         transition:    "color 0.35s ease",
-                      }}>
-                        {exp.shortYear}
-                      </span>
+                      }}>{exp.shortYear}</span>
                       <span style={{
-                        fontFamily:    "var(--font-space), sans-serif",
-                        fontSize:      "11px",
-                        lineHeight:    1.2,
-                        maxWidth:      "110px",
-                        whiteSpace:    "nowrap",
-                        overflow:      "hidden",
-                        textOverflow:  "ellipsis",
-                        color:         activeIdx === i ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
-                        transition:    "color 0.35s ease",
-                      }}>
-                        {exp.company.split("—")[0].trim()}
-                      </span>
+                        fontSize:     "11px",
+                        fontFamily:   "var(--font-space), sans-serif",
+                        lineHeight:   1.2,
+                        maxWidth:     "110px",
+                        whiteSpace:   "nowrap",
+                        overflow:     "hidden",
+                        textOverflow: "ellipsis",
+                        color:        activeIdx === i ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
+                        transition:   "color 0.35s ease",
+                      }}>{exp.company.split("—")[0].trim()}</span>
                     </div>
-                    <SignalIcon active={activeIdx === i} />
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Colonne droite — entrées */}
-          <div style={{ display: "flex", flexDirection: "column", paddingBottom: "clamp(80px,12vh,140px)" }}>
+          {/* Right — entries */}
+          <div style={{
+            display:       "flex",
+            flexDirection: "column",
+            paddingBottom: "clamp(60px,8vh,100px)",
+            minWidth:      0,
+          }}>
             {EXPERIENCE.map((exp, i) => (
               <div
                 key={i}
-                ref={el => { entryRefs.current[i] = el; }}
+                ref={(el) => { entryRefs.current[i] = el; }}
                 style={{
                   display:       "flex",
                   flexDirection: "column",
-                  paddingTop:    i === 0 ? 0 : "clamp(80px,10vh,120px)",
-                  paddingBottom: "clamp(60px,8vh,100px)",
+                  paddingTop:    i === 0 ? 0 : "clamp(48px,6vh,80px)",
+                  paddingBottom: "clamp(10px,1vh,40px)",
                   borderTop:     i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  minWidth:      0,
                 }}
               >
                 {/* Image */}
-                <div style={{ position: "relative", width: "100%", marginBottom: "clamp(28px,4vh,48px)" }}>
+                <div style={{ position: "relative", width: "100%", marginBottom: "clamp(20px,3vh,36px)" }}>
                   <div style={{
                     position: "relative",
                     width:    "100%",
-                    height:   "clamp(220px,38vh,480px)",
+                    height:   "clamp(200px,32vh,420px)",
                     overflow: "hidden",
                   }}>
                     <Image
@@ -369,35 +258,29 @@ const ExperienceSection: React.FC = () => {
                     }} />
                     <div style={{
                       position:      "absolute",
-                      top:           "18px",
+                      top:           "20px",
                       left:          "20px",
                       fontFamily:    "var(--font-space), sans-serif",
                       fontSize:      "20px",
                       letterSpacing: "0.25em",
                       color:         activeIdx === i ? "#F0C427" : "rgba(255,255,255,0.35)",
                       transition:    "color 0.35s ease",
-                    }}>
-                      {String(i + 1).padStart(2, "0")} ——
-                    </div>
+                    }}>{String(i + 1).padStart(2, "0")} ——</div>
                     <div style={{
                       position:      "absolute",
-                      top:           "18px",
-                      right:         "20px",
+                      top:           "10px",
+                      right:         "10px",
                       fontFamily:    "var(--font-space), sans-serif",
                       fontSize:      "10px",
                       letterSpacing: "0.15em",
                       color:         activeIdx === i ? "rgba(240,196,39,.7)" : "rgba(255,255,255,0.3)",
                       transition:    "color 0.35s ease",
-                    }}>
-                      {exp.period}
-                    </div>
+                    }}>{exp.period}</div>
                   </div>
-
-                  {/* Titre + company sous l'image */}
                   <div style={{
                     position:   "relative",
                     marginTop:  "-clamp(24px,4vh,48px)",
-                    paddingTop: "clamp(24px,4vh,48px)",
+                    paddingTop: "clamp(10px,4vh,48px)",
                     background: "linear-gradient(to bottom,transparent,#05060f 35%)",
                   }}>
                     <h3 style={{
@@ -406,13 +289,11 @@ const ExperienceSection: React.FC = () => {
                       color:         "#fff",
                       letterSpacing: "-0.02em",
                       lineHeight:    1.5,
-                      marginBottom:  "clamp(10px,1.5vh,16px)",
+                      marginBottom:  "clamp(8px,1vh,12px)",
                       whiteSpace:    "pre-line",
                       overflow:      "hidden",
                       textOverflow:  "ellipsis",
-                    }}>
-                      {exp.title}
-                    </h3>
+                    }}>{exp.title}</h3>
                     <div style={{
                       display:       "flex",
                       alignItems:    "center",
@@ -430,28 +311,28 @@ const ExperienceSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Séparateur */}
+                {/* Séparateur — jaune pur quand actif, sinon blanc très discret */}
                 <div style={{
                   height:       "1px",
                   width:        "100%",
                   background:   activeIdx === i
-                    ? "linear-gradient(to right,#F0C427 0%,rgba(107,117,199,.3) 40%,rgba(255,255,255,.04) 100%)"
+                    ? "linear-gradient(to right, #F0C427 0%, rgba(240,196,39,0.18) 55%, rgba(255,255,255,0.02) 100%)"
                     : "rgba(255,255,255,0.06)",
                   transition:   "background 0.6s ease",
-                  marginBottom: "clamp(24px,3.5vh,40px)",
+                  marginBottom: "clamp(18px,2.5vh,32px)",
                 }} />
 
-                {/* Description en deux colonnes */}
+                {/* Description */}
                 <div style={{
                   display:             "grid",
                   gridTemplateColumns: "1fr 1fr",
                   gap:                 "0 clamp(24px,3vw,48px)",
-                  marginBottom:        "clamp(36px,5vh,56px)",
+                  marginBottom:        "clamp(24px,3vh,40px)",
                 }}>
                   {exp.description.map((para, j) => (
                     <p key={j} style={{
                       fontFamily:         "var(--font-space), sans-serif",
-                      fontSize:           "clamp(13px,1.1vw,16px)",
+                      fontSize:           "clamp(13px, 1.1vw, 16px)",
                       color:              "rgba(255,255,255,0.62)",
                       lineHeight:         1.95,
                       textAlign:          "justify",
@@ -462,13 +343,14 @@ const ExperienceSection: React.FC = () => {
                       letterSpacing:      "0.005em",
                       fontKerning:        "normal",
                       fontOpticalSizing:  "auto",
+                      margin:             0,
                     }}>
                       <HighlightedText text={para} highlights={exp.highlights} />
                     </p>
                   ))}
                 </div>
 
-                {/* Compétences */}
+                {/* Skills — ligne compacte collée sous la description */}
                 <SkillsRevealBlock skills={exp.skills as SkillTag[]} />
 
               </div>
